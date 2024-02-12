@@ -1,0 +1,10 @@
+version: "3.8"
+services:
+  feedback_server:
+    build: .
+    container_name: feedback_server
+    restart: unless-stopped
+    ports:
+      - "5555:8080"
+    volumes:
+      - /home/hades/feedbackProject/FeedbackDataConnection/output:/feedback
