@@ -16,14 +16,21 @@ struct Feedback {
     textbox: String,
 }
 
+// Call program with at least three arguments
+// 1. Webport
+// 2. Path to IP config file
+// 3. Target Port
 #[launch]
 fn rocket() -> _ {
-    let (port, _, _) = get_args();
+    let (web_port, target_address, target_port) = get_args();
+
+    println!("User Arguments:\nWebport {web_port}\n\
+    IP-config file path: {target_address}\nTarget Port: {target_port}");
 
     rocket::build()
         .configure(rocket::Config {
             address: "0.0.0.0".parse().unwrap(),
-            port,
+            port: web_port,
             ..Default::default()
         })
         .mount("/", routes![feedback_landing, feedback_landing_msg, print_feedback])
