@@ -9,7 +9,8 @@ import java.util.List;
 
 public class Main {
 
-	private static final String FILE_NAME = "/feedback/feedback.txt";
+	private static final String FILE_ENDING = ".txt";
+	private static final String FILE_NAME = "/feedback/feedback" + FILE_ENDING;
 	private static final int PORT = 8080;
 
 	public static void main(String[] args) {
@@ -29,14 +30,19 @@ public class Main {
 	}
 
 	private static synchronized void logic(Socket sock) {
+		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+		String fileName = FILE_NAME.replace(FILE_ENDING, "-")
+				+ dtf.format(LocalDateTime.now(ZoneOffset.UTC))
+				+ FILE_ENDING;
+
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(sock.getInputStream()));
 		     BufferedWriter writer = new BufferedWriter(
-					 new FileWriter(FILE_NAME, true))) {
+					 new FileWriter(fileName, true))) {
 
 			writer.write("-".repeat(50));
 			writer.newLine();
 
-			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("[yyyy-MM-dd - HH:mm:ss]");
+			dtf = DateTimeFormatter.ofPattern("[yyyy-MM-dd - HH:mm:ss]");
 			LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
 			writer.write(dtf.format(now) + "z");
 

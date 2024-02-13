@@ -5,6 +5,6 @@ services:
     container_name: feedback_server
     restart: unless-stopped
     ports:
-      - "5555:8080"
+      - "7777:8080"
     volumes:
       - /home/hades/feedbackProject/FeedbackDataConnection/output:/feedback
