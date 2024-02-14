@@ -6,6 +6,7 @@ use std::io::Result;
 pub fn send_msg(msg: String, ip_path: &str, port: u16) -> Result<()> {
 
     let ip = read_ip_from_file(ip_path)?;
+    let msg = format!("CHANGEME\n{msg}");
 
     let mut stream = TcpStream::connect(format!("{ip}:{port}"))?;
     stream.write_all(msg.trim().as_bytes())?;

@@ -8,3 +8,5 @@ services:
       - "7777:8080"
     volumes:
       - /home/hades/feedbackProject/FeedbackDataConnection/output:/feedback
+    environment:
+      PWD: CHANGEME

@@ -11,6 +11,7 @@ public class Main {
 
 	private static final String FILE_ENDING = ".txt";
 	private static final String FILE_NAME = "/feedback/feedback" + FILE_ENDING;
+	private static final String PWD = System.getenv("PWD");
 	private static final int PORT = 8080;
 
 	public static void main(String[] args) {
@@ -21,7 +22,7 @@ public class Main {
 			// noinspection InfiniteLoopStatement
 			while(true) {
 				Socket sock = server.accept();
-				new Thread(() -> logic(sock)).start();
+				new Thread(() -> authenticate(sock)).start();
 			}
 
 		} catch(IOException e) {
@@ -29,15 +30,13 @@ public class Main {
 		}
 	}
 
-	private static synchronized void logic(Socket sock) {
+	private static synchronized void logic(BufferedReader reader) {
 		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 		String fileName = FILE_NAME.replace(FILE_ENDING, "-")
 				+ dtf.format(LocalDateTime.now(ZoneOffset.UTC))
 				+ FILE_ENDING;
 
-		try (BufferedReader reader = new BufferedReader(new InputStreamReader(sock.getInputStream()));
-		     BufferedWriter writer = new BufferedWriter(
-					 new FileWriter(fileName, true))) {
+		try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName, true))) {
 
 			writer.write("-".repeat(50));
 			writer.newLine();
@@ -59,10 +58,21 @@ public class Main {
 			writer.write("-".repeat(50));
 			writer.newLine();
 			writer.newLine();
-        	writer.flush();
+			writer.flush();
 
 		} catch(IOException e) {
 			throw new RuntimeException(e);
+		}
+	}
+
+	private static void authenticate(Socket sock) {
+		try (BufferedReader reader = new BufferedReader(new InputStreamReader(sock.getInputStream()))) {
+
+			String in = reader.readLine();
+			if(in.equals(PWD)) logic(reader);
+			else Thread.sleep(10_000);
+
+		} catch(IOException | InterruptedException ignored) {
 		}
 	}
 }
