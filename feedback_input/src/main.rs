@@ -20,10 +20,6 @@ struct Feedback {
     textbox: String,
 }
 
-// Call program with at least three arguments
-// 1. Webport
-// 2. Path to IP config file
-// 3. Target Port
 #[launch]
 fn rocket() -> _ {
     dotenv().expect("Failed to read .env file");
