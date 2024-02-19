@@ -13,7 +13,7 @@ static PORT: u16 = 8080;
 fn main() {
     println!("Starting Server");
 
-    let listener = TcpListener::bind(("localhost", PORT)).unwrap();
+    let listener = TcpListener::bind("0.0.0.0:8080").unwrap();
 
     let mutex = Arc::new(Mutex::new(()));
 
@@ -57,6 +57,7 @@ fn logic(reader: BufReader<TcpStream>, mutex: Arc<Mutex<()>>) {
                                        .collect();
 
         for line in lines.iter() {
+            println!("Line: {line}");
             writeln!(writer, "{}", line).unwrap();
         }
 
@@ -65,11 +66,13 @@ fn logic(reader: BufReader<TcpStream>, mutex: Arc<Mutex<()>>) {
 }
 
 fn authenticate(stream: TcpStream, mutex: Arc<Mutex<()>>) {
+    println!("New connection");
     let mut reader = BufReader::new(stream);
     let mut pwd_line = String::new();
 
     if let Ok(_) = reader.read_line(&mut pwd_line) {
         let pwd = env::var("PWD").expect("Unable to get Password from env");
+        println!("PWD: {pwd}");
         if pwd_line.trim() == pwd.trim() { logic(reader, mutex) }
     }
 }
