@@ -118,9 +118,9 @@ checksum = "b5e6163cb8c49088c2c36f57875e58ccd8c87c7427f7fbd50ea6710b2f3f2e8f"
 
 [[package]]
 name = "logger_utc"
-version = "0.1.1"
+version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9ff4d3466d1fb4ab27fffca0a38fa94f5840f5589b60977a06a6cefbfe0ce720"
+checksum = "b2cdff9a21bcc9bdf234e48a457b8c56f57a9a7210aa00d712fbe404b0074e40"
 dependencies = [
  "chrono",
 ]

@@ -5,4 +5,4 @@ edition = "2021"
 
 [dependencies]
 chrono = "0.4.34"
-logger_utc = "0.1.1"
+logger_utc = "0.1.2"
