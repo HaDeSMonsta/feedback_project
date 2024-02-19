@@ -36,7 +36,7 @@ fn logic(reader: BufReader<TcpStream>, mutex: Arc<Mutex<()>>) {
     let current_date_str = Utc::now()
         .format("%Y-%m-%d")
         .to_string();
-    let file_name = format!("{FILE_NAME}-{current_date_str}.txt");
+    let file_name = format!("{current_date_str}-{FILE_NAME}.txt");
 
     {
         let _lock = mutex.lock().unwrap(); // Get lock
