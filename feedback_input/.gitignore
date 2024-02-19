@@ -2,3 +2,7 @@
 
 ### Debug file ###
 config/
+
+### Logs ###
+logs/
+*.log
