@@ -27,4 +27,4 @@ RUN cargo build --release
 # 4. Final stage
 FROM rust
 COPY --from=builder /app/target/release/feedback_data_connection /usr/local/bin/feedback_data_connection
-CMD ["<APP_NAME>"]
+CMD ["feedback_data_connection"]

@@ -1,0 +1,12 @@
+version: "3.8"
+services:
+  feedback_server:
+    build: .
+    container_name: feedback_server
+    restart: unless-stopped
+    ports:
+      - "7777:8080"
+    volumes:
+      - /home/hades/feedbackProject/feedback_data_connection/output:/feedback
+    environment:
+      PWD: CHANGEME
