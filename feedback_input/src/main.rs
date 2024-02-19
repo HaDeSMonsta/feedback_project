@@ -4,7 +4,11 @@ extern crate rocket_contrib;
 
 use std::borrow::Cow;
 use std::env;
+use std::fs::{create_dir, create_dir_all, OpenOptions};
+use std::io::Write;
 
+use chrono::Local;
+use dotenv::dotenv;
 use rocket::{launch, response::Redirect, routes};
 use rocket::form::Form;
 use rocket::response::content;
@@ -22,7 +26,9 @@ struct Feedback {
 // 3. Target Port
 #[launch]
 fn rocket() -> _ {
-    let (web_port, target_address, target_port) = get_args();
+    dotenv().expect("Failed to read .env file");
+
+    let (web_port, target_address, target_port) = get_vars();
 
     println!("User Arguments:\nWebport {web_port}\n\
     IP-config file path: {target_address}\nTarget Port: {target_port}");
@@ -49,13 +55,14 @@ fn feedback_landing_msg(status_msg: &str, colour: &str, initial_msg: &str)
 
 #[post("/", data = "<feedback>")]
 fn print_feedback(feedback: Form<Feedback>) -> Redirect {
-    let (_, ip_path, target_port) = get_args();
+    let (_, ip_path, target_port) = get_vars();
 
     let (status_msg, colour, initial_msg) = match client::send_msg(
         feedback.textbox.to_string(), ip_path.as_str(), target_port,
     ) {
         Ok(_) => { ("Thank you", "green", "") }
-        Err(_) => {
+        Err(err) => {
+            log(err.to_string());
             ("An error occurred while sending the data to the Server", "red",
              feedback.textbox.as_str())
         }
@@ -112,24 +119,35 @@ pub fn get_html_form(msg: Option<&str>, color: Option<&str>, initial_msg: &str) 
     "#, uri = uri!(print_feedback))
 }
 
-fn get_args() -> (u16, String, u16) {
-    let args: Vec<String> = env::args().collect();
-    let web_port = if args.len() > 1 { Some(args[1].as_str()) } else { None };
-    let ip_path = if args.len() > 2 { Some(args[2].as_str()) } else { None };
-    let target_port = if args.len() > 3 { Some(args[3].as_str()) } else { None };
-
-    let web_port: u16 = web_port
-        .expect("First argument (Web port) is missing")
+fn get_vars() -> (u16, String, u16) {
+    let web_port: u16 = env::var("WEB_PORT")
+        .expect("WEB_PORT must be set")
         .parse()
-        .expect("First argument (Web port) was not a u32");
-
-    let ip_path = ip_path
-        .expect("Second argument (IP-config path) not set")
-        .to_string();
-
-    let target_port: u16 = target_port
-        .expect("Third argument (Target port) not set")
+        .expect("WEB_PORT must be a valid u16");
+    let target_address = env::var("IP_PATH")
+        .expect("IP_PATH must be set");
+    let target_port: u16 = env::var("TARGET_PORT")
+        .expect("TARGET_PORT must be set")
         .parse()
-        .expect("Third argument (Target port) was not a valid int");
-    (web_port, ip_path, target_port)
+        .expect("TARGET_PORT must be a valid u16");
+
+    (web_port, target_address, target_port)
+}
+
+fn log(to_log: String) {
+    let now = Local::now();
+    let time_stamp = now.format("[%Y-%m-%d] - [%h:%M:%S]");
+    let msg = format!("{time_stamp} {to_log}");
+    let date = now.format("%Y-%d-%d");
+    let dir = "logs";
+    let file_name = format!("{dir}/{date}-err.log");
+
+    create_dir_all(dir).expect(&format!("Unable to create {dir} dir"));
+
+    let mut log = OpenOptions::new()
+        .write(true)
+        .create(true)
+        .open(file_name).unwrap();
+
+    writeln!(log, "{msg}").unwrap();
 }

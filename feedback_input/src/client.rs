@@ -10,7 +10,8 @@ pub fn send_msg(msg: String, ip_path: &str, port: u16) -> Result<()> {
 
     let mut stream = TcpStream::connect(format!("{ip}:{port}"))?;
     stream.write_all(msg.trim().as_bytes())?;
-    stream.flush()
+    stream.flush()?;
+    Ok(())
 }
 
 fn read_ip_from_file(path: &str) -> Result<String> {
