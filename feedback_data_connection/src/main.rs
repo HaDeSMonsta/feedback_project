@@ -1,10 +1,13 @@
+extern crate logger_utc as logger;
+
 use std::env;
 use std::fs::OpenOptions;
 use std::io::{BufRead, BufReader, BufWriter, Write};
 use std::net::{TcpListener, TcpStream};
 use std::thread;
 use std::sync::{Arc, Mutex};
-use chrono::{Local, Utc};
+use chrono::Utc;
+use logger::log;
 
 static FILE_NAME: &'static str = "/feedback/feedback";
 static PORT: u16 = 8080;
@@ -84,12 +87,4 @@ fn authenticate(stream: TcpStream, mutex: Arc<Mutex<()>>) {
         }
         else { log(&format!("Invalid password: {}", pwd_line.trim())) }
     }
-}
-
-fn log(to_log: &str) {
-    let now = Local::now();
-    let time_stamp = now.format("[%Y-%m-%d] - [%h:%M:%S]");
-    let msg = format!("{time_stamp} - {to_log}");
-
-    println!("{msg}");
 }
