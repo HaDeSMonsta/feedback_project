@@ -4,7 +4,7 @@ extern crate rocket_contrib;
 
 use std::borrow::Cow;
 use std::env;
-use std::fs::{create_dir, create_dir_all, OpenOptions};
+use std::fs::{create_dir_all, OpenOptions};
 use std::io::Write;
 
 use chrono::Local;
