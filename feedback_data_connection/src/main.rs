@@ -4,16 +4,15 @@ use std::io::{BufRead, BufReader, BufWriter, Write};
 use std::net::{TcpListener, TcpStream};
 use std::thread;
 use std::sync::{Arc, Mutex};
-use chrono::Utc;
+use chrono::{Local, Utc};
 
-static FILE_ENDING: &'static str = ".txt";
 static FILE_NAME: &'static str = "/feedback/feedback";
 static PORT: u16 = 8080;
 
 fn main() {
     println!("Starting Server");
 
-    let listener = TcpListener::bind("0.0.0.0:8080").unwrap();
+    let listener = TcpListener::bind(format!("0.0.0.0:{PORT}")).unwrap();
 
     let mutex = Arc::new(Mutex::new(()));
 
@@ -34,7 +33,7 @@ fn logic(reader: BufReader<TcpStream>, mutex: Arc<Mutex<()>>) {
     let current_date_str = Utc::now()
         .format("%Y-%m-%d")
         .to_string();
-    let file_name = format!("{}-{}{}", FILE_NAME, current_date_str, FILE_ENDING);
+    let file_name = format!("{FILE_NAME}-{current_date_str}.txt");
 
     {
         let _lock = mutex.lock().unwrap(); // Get lock
@@ -44,23 +43,25 @@ fn logic(reader: BufReader<TcpStream>, mutex: Arc<Mutex<()>>) {
             .create(true)
             .append(true)
             .open(file_name)
-            .expect("Unable to open file");
+            .expect("Unable to open file (probably didn't bind the correct path in Docker)");
 
         let mut writer = BufWriter::new(file);
 
         writeln!(writer, "{}", "-".repeat(50)).unwrap();
+
         let current_datetime_str = Utc::now()
             .format("[%-Y-%m-%d - %-H:%M:%S]z")
             .to_string();
-        writeln!(writer, "{}", current_datetime_str).unwrap();
+
+        writeln!(writer, "{current_datetime_str}").unwrap();
 
         let lines: Vec<String> = reader.lines()
                                        .map(|line| line.unwrap())
                                        .collect();
 
         for line in lines.iter() {
-            println!("Line: {line}");
-            writeln!(writer, "{}", line).unwrap();
+            log(&format!("Got line: {line}"));
+            writeln!(writer, "{line}").unwrap();
         }
 
         writeln!(writer, "{}\n", "-".repeat(50)).unwrap();
@@ -68,13 +69,27 @@ fn logic(reader: BufReader<TcpStream>, mutex: Arc<Mutex<()>>) {
 }
 
 fn authenticate(stream: TcpStream, mutex: Arc<Mutex<()>>) {
-    println!("New connection");
+
+    log("New connection");
+
     let mut reader = BufReader::new(stream);
     let mut pwd_line = String::new();
 
     if let Ok(_) = reader.read_line(&mut pwd_line) {
         let pwd = env::var("PWD").expect("Unable to get Password from env");
-        println!("PWD: {pwd}");
-        if pwd_line.trim() == pwd.trim() { logic(reader, mutex) }
+
+        if pwd_line.trim() == pwd.trim() {
+            log("Valid password");
+            logic(reader, mutex)
+        }
+        else { log(&format!("Invalid password: {}", pwd_line.trim())) }
     }
+}
+
+fn log(to_log: &str) {
+    let now = Local::now();
+    let time_stamp = now.format("[%Y-%m-%d] - [%h:%M:%S]");
+    let msg = format!("{time_stamp} - {to_log}");
+
+    println!("{msg}");
 }
