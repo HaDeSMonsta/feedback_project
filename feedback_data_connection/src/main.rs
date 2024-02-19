@@ -68,6 +68,7 @@ fn logic(reader: BufReader<TcpStream>, mutex: Arc<Mutex<()>>) {
         }
 
         writeln!(writer, "{}\n", "-".repeat(50)).unwrap();
+        log("Finished writing, closing connection");
     } // Drop lock
 }
 
