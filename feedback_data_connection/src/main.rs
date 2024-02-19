@@ -9,7 +9,8 @@ use std::sync::{Arc, Mutex};
 use chrono::Utc;
 use logger::log;
 
-static FILE_NAME: &'static str = "/feedback/feedback";
+static FILE_PATH: &'static str = "/feedback/";
+static FILE_NAME: &'static str = "feedback.txt";
 static PORT: u16 = 8080;
 
 fn main() {
@@ -36,7 +37,7 @@ fn logic(reader: BufReader<TcpStream>, mutex: Arc<Mutex<()>>) {
     let current_date_str = Utc::now()
         .format("%Y-%m-%d")
         .to_string();
-    let file_name = format!("{current_date_str}-{FILE_NAME}.txt");
+    let file_name = format!("{FILE_PATH}{current_date_str}-{FILE_NAME}");
 
     {
         let _lock = mutex.lock().unwrap(); // Get lock
