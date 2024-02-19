@@ -1,3 +1,4 @@
+extern crate logger_utc as logger;
 #[macro_use]
 extern crate rocket;
 extern crate rocket_contrib;
@@ -9,6 +10,7 @@ use std::io::Write;
 
 use chrono::Local;
 use dotenv::dotenv;
+use logger::log_file;
 use rocket::{launch, response::Redirect, routes};
 use rocket::form::Form;
 use rocket::response::content;
@@ -132,18 +134,11 @@ fn get_vars() -> (u16, String, u16) {
 
 fn log(to_log: String) {
     let now = Local::now();
-    let time_stamp = now.format("[%Y-%m-%d] - [%h:%M:%S]");
-    let msg = format!("{time_stamp} {to_log}");
     let date = now.format("%Y-%d-%d");
     let dir = "logs";
     let file_name = format!("{dir}/{date}-err.log");
 
     create_dir_all(dir).expect(&format!("Unable to create {dir} dir"));
 
-    let mut log = OpenOptions::new()
-        .write(true)
-        .create(true)
-        .open(file_name).unwrap();
-
-    writeln!(log, "{msg}").unwrap();
+    log_file(to_log.as_str(), file_name.as_str()).expect("Unable to open log file");
 }
