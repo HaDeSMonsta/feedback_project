@@ -5,12 +5,11 @@ extern crate rocket_contrib;
 
 use std::borrow::Cow;
 use std::env;
-use std::fs::{create_dir_all, OpenOptions};
-use std::io::Write;
+use std::fs::create_dir_all;
 
 use chrono::Local;
 use dotenv::dotenv;
-use logger::log_file;
+use logger::log_to_file;
 use rocket::{launch, response::Redirect, routes};
 use rocket::form::Form;
 use rocket::response::content;
@@ -140,5 +139,5 @@ fn log(to_log: String) {
 
     create_dir_all(dir).expect(&format!("Unable to create {dir} dir"));
 
-    log_file(to_log.as_str(), file_name.as_str()).expect("Unable to open log file");
+    log_to_file(to_log.as_str(), file_name.as_str()).expect("Unable to open log file");
 }
