@@ -31,7 +31,9 @@ fn main() {
 }
 
 fn logic(reader: BufReader<TcpStream>, mutex: Arc<Mutex<()>>) {
-    let current_date_str = Utc::now().format("%Y-%m-%d").to_string();
+    let current_date_str = Utc::now()
+        .format("%Y-%m-%d")
+        .to_string();
     let file_name = format!("{}-{}{}", FILE_NAME, current_date_str, FILE_ENDING);
 
     {
@@ -48,7 +50,7 @@ fn logic(reader: BufReader<TcpStream>, mutex: Arc<Mutex<()>>) {
 
         writeln!(writer, "{}", "-".repeat(50)).unwrap();
         let current_datetime_str = Utc::now()
-            .format("[%-Y-%m-%d - %-H:%M:%S]Z")
+            .format("[%-Y-%m-%d - %-H:%M:%S]z")
             .to_string();
         writeln!(writer, "{}", current_datetime_str).unwrap();
 
