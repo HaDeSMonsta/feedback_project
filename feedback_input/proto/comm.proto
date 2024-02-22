@@ -1,0 +1,16 @@
+syntax = "proto3";
+package comm;
+
+service Communication {
+  rpc SendMsg (MsgRequest) returns (MsgResponse);
+}
+
+message MsgRequest {
+  string auth = 1;
+  string msg = 2;
+}
+
+message MsgResponse {
+  bool success = 1;
+  optional string errMsg = 2;
+}

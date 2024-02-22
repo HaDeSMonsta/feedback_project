@@ -51,12 +51,12 @@ fn feedback_landing_msg(status_msg: &str, colour: &str, initial_msg: &str)
 }
 
 #[post("/", data = "<feedback>")]
-fn print_feedback(feedback: Form<Feedback>) -> Redirect {
+async fn print_feedback(feedback: Form<Feedback>) -> Redirect {
     let (_, ip_path, target_port) = get_vars();
 
     let (status_msg, colour, initial_msg) = match client::send_msg(
         feedback.textbox.to_string(), ip_path.as_str(), target_port,
-    ) {
+    ).await {
         Ok(_) => { ("Thank you", "green", "") }
         Err(err) => {
             log(err.to_string());
