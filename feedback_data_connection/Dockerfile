@@ -18,6 +18,9 @@ RUN cargo chef cook --release --recipe-path recipe.json
 # 3. Build application
 FROM rust as builder
 WORKDIR app
+# Dependencies for proto
+RUN apt update
+RUN apt install protobuf-compiler -y
 COPY . .
 # Copy over the cached dependency files
 COPY --from=cacher /app/target target

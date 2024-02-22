@@ -6,3 +6,11 @@ edition = "2021"
 [dependencies]
 chrono = "0.4.34"
 logger_utc = "0.1.5"
+tonic = "0.11.0"
+prost = "0.12.3"
+tokio = {version = "1.36.0", features = ["macros", "rt-multi-thread"]}
+log = "0.4.20"
+lazy_static = "1.4.0"
+
+[build-dependencies]
+tonic-build = "0.11.0"

@@ -1,92 +1,114 @@
 extern crate logger_utc as logger;
 
-use std::env;
+use std::{env, error};
 use std::fs::OpenOptions;
-use std::io::{BufRead, BufReader, BufWriter, Write};
-use std::net::{TcpListener, TcpStream};
-use std::thread;
+use std::io::{BufWriter, Write};
 use std::sync::{Arc, Mutex};
+
 use chrono::Utc;
+use lazy_static::lazy_static;
 use logger::log;
+use tonic::{Request, Response, Status};
+use tonic::transport::Server;
 
-static FILE_PATH: &'static str = "/feedback/";
-static FILE_NAME: &'static str = "feedback.txt";
-static PORT: u16 = 8080;
+use comm::communication_server::Communication;
 
-fn main() {
-    println!("Starting Server");
+use crate::comm::{MsgRequest, MsgResponse};
+use crate::comm::communication_server::CommunicationServer;
 
-    let listener = TcpListener::bind(format!("0.0.0.0:{PORT}")).unwrap();
+const FILE_PATH: &'static str = "/feedback/";
+const FILE_NAME: &'static str = "feedback.txt";
+const PORT: u16 = 8080;
 
-    let mutex = Arc::new(Mutex::new(()));
+lazy_static! {
+    static ref LOCK: Arc<Mutex<()>> = Arc::new(Mutex::new(()));
+}
 
-    loop {
-        match listener.accept() {
-            Ok((stream, _)) => {
-                let clone = Arc::clone(&mutex);
-                thread::spawn(move || authenticate(stream, clone));
-            }
-            Err(e) => {
-                eprintln!("Unable to accept connection: {}", e);
-            }
+pub mod comm {
+    tonic::include_proto!("comm");
+}
+
+#[derive(Debug, Default)]
+pub struct CommService {}
+
+#[tonic::async_trait]
+impl Communication for CommService {
+    async fn send_msg(&self, request: Request<MsgRequest>)
+                      -> Result<Response<MsgResponse>, Status> {
+        log("New connection");
+
+        let pwd: String = env::var("PWD").expect("PWD must be set");
+
+        let req = request.into_inner();
+
+        if req.auth != pwd {
+            log(&format!("Invalid password: {}", req.auth));
+            let res = MsgResponse {
+                success: false,
+                err_msg: Some(String::from("Invalid password")),
+            };
+            return Ok(Response::new(res));
         }
+
+        log("Valid password");
+
+        logic(&req.msg);
+
+        let res = MsgResponse {
+            success: true,
+            err_msg: None,
+        };
+
+        Ok(Response::new(res))
     }
 }
 
-fn logic(reader: BufReader<TcpStream>, mutex: Arc<Mutex<()>>) {
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn error::Error>> {
+    println!("Starting Server");
+
+    let addr = format!("0.0.0.0:{PORT}").parse()?;
+    let msg_service = CommService::default();
+    
+    Server::builder()
+        .add_service(CommunicationServer::new(msg_service))
+        .serve(addr)
+        .await?;
+    
+    Ok(())
+}
+
+fn logic(to_log: &str) {
+    let lock = Arc::clone(&*LOCK);
+    let _lock = lock.lock().unwrap(); // Get lock
+
     let current_date_str = Utc::now()
         .format("%Y-%m-%d")
         .to_string();
     let file_name = format!("{FILE_PATH}{current_date_str}-{FILE_NAME}");
 
-    {
-        let _lock = mutex.lock().unwrap(); // Get lock
+    let file = OpenOptions::new()
+        .write(true)
+        .create(true)
+        .append(true)
+        .open(file_name)
+        .expect("Unable to open file (probably didn't bind the correct path in Docker)");
 
-        let file = OpenOptions::new()
-            .write(true)
-            .create(true)
-            .append(true)
-            .open(file_name)
-            .expect("Unable to open file (probably didn't bind the correct path in Docker)");
+    let mut writer = BufWriter::new(file);
 
-        let mut writer = BufWriter::new(file);
+    writeln!(writer, "{}", "-".repeat(50)).unwrap();
 
-        writeln!(writer, "{}", "-".repeat(50)).unwrap();
+    let current_datetime_str = Utc::now()
+        .format("[%-Y-%m-%d - %-H:%M:%S]z")
+        .to_string();
 
-        let current_datetime_str = Utc::now()
-            .format("[%-Y-%m-%d - %-H:%M:%S]z")
-            .to_string();
+    writeln!(writer, "{current_datetime_str}").unwrap();
 
-        writeln!(writer, "{current_datetime_str}").unwrap();
-
-        let lines: Vec<String> = reader.lines()
-                                       .map(|line| line.unwrap())
-                                       .collect();
-
-        for line in lines.iter() {
-            log(&format!("Got line: {line}"));
-            writeln!(writer, "{line}").unwrap();
-        }
-
-        writeln!(writer, "{}\n", "-".repeat(50)).unwrap();
-        log("Finished writing, closing connection");
-    } // Drop lock
-}
-
-fn authenticate(stream: TcpStream, mutex: Arc<Mutex<()>>) {
-
-    log("New connection");
-
-    let mut reader = BufReader::new(stream);
-    let mut pwd_line = String::new();
-
-    if let Ok(_) = reader.read_line(&mut pwd_line) {
-        let pwd = env::var("PWD").expect("Unable to get Password from env");
-
-        if pwd_line.trim() == pwd.trim() {
-            log("Valid password");
-            logic(reader, mutex)
-        }
-        else { log(&format!("Invalid password: {}", pwd_line.trim())) }
+    for line in to_log.lines() {
+        log(&format!("Got line: {line}"));
+        writeln!(writer, "{line}").unwrap();
     }
-}
+
+    writeln!(writer, "{}\n", "-".repeat(50)).unwrap();
+    log("Finished writing, closing connection");
+} // Drop lock

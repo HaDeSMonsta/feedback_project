@@ -7,6 +7,6 @@ services:
     ports:
       - "7777:8080"
     volumes:
-      - /home/hades/feedbackProject/feedback_data_connection/output:/feedback
+      - /home/hades/rust_projects/feedbackProject/feedback_data_connection/output:/feedback
     environment:
       PWD: CHANGEME
