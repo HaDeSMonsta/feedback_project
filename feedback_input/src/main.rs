@@ -135,5 +135,5 @@ fn get_vars() -> (u16, String, u16) {
 }
 
 fn log(to_log: String) {
-    let r = log_to_dyn_file(&to_log, Some(LOG_DIR), LOG_FILE_NAME);
+    log_to_dyn_file(&to_log, Some(LOG_DIR), LOG_FILE_NAME).unwrap();
 }
