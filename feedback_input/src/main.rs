@@ -7,14 +7,16 @@ use std::borrow::Cow;
 use std::env;
 use std::fs::create_dir_all;
 
-use chrono::Local;
 use dotenv::dotenv;
-use logger::log_to_file;
+use logger::log_to_dyn_file;
 use rocket::{launch, response::Redirect, routes};
 use rocket::form::Form;
 use rocket::response::content;
 
 mod client;
+
+const LOG_DIR: &'static str = "logs/";
+const LOG_FILE_NAME: &'static str = "err.log";
 
 #[derive(FromForm)]
 struct Feedback {
@@ -24,6 +26,7 @@ struct Feedback {
 #[launch]
 fn rocket() -> _ {
     dotenv().expect("Failed to read .env file");
+    create_dir_all(LOG_DIR).expect(&format!("Unable to create {LOG_DIR} dir"));
 
     let (web_port, target_address, target_port) = get_vars();
 
@@ -132,12 +135,5 @@ fn get_vars() -> (u16, String, u16) {
 }
 
 fn log(to_log: String) {
-    let now = Local::now();
-    let date = now.format("%Y-%d-%d");
-    let dir = "logs";
-    let file_name = format!("{dir}/{date}-err.log");
-
-    create_dir_all(dir).expect(&format!("Unable to create {dir} dir"));
-
-    log_to_file(to_log.as_str(), file_name.as_str()).expect("Unable to open log file");
+    let r = log_to_dyn_file(&to_log, Some(LOG_DIR), LOG_FILE_NAME);
 }
