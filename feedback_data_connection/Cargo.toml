@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 chrono = "0.4.34"
-logger_utc = "0.1.5"
+logger_utc = "0.1.8"
 tonic = "0.11.0"
 prost = "0.12.3"
 tokio = {version = "1.36.0", features = ["macros", "rt-multi-thread"]}

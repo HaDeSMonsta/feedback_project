@@ -43,11 +43,8 @@ impl Communication for CommService {
 
         if req.auth != pwd {
             log(&format!("Invalid password: {}", req.auth));
-            let res = MsgResponse {
-                success: false,
-                err_msg: Some(String::from("Invalid password")),
-            };
-            return Ok(Response::new(res));
+            let e = Status::unauthenticated("Invalid authentication");
+            return Err(e);
         }
 
         log("Valid password");
@@ -55,8 +52,6 @@ impl Communication for CommService {
         logic(&req.msg);
 
         let res = MsgResponse {
-            success: true,
-            err_msg: None,
         };
 
         Ok(Response::new(res))

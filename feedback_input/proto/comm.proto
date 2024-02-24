@@ -11,6 +11,4 @@ message MsgRequest {
 }
 
 message MsgResponse {
-  bool success = 1;
-  optional string errMsg = 2;
 }
