@@ -51,8 +51,7 @@ impl Communication for CommService {
 
         logic(&req.msg);
 
-        let res = MsgResponse {
-        };
+        let res = MsgResponse {};
 
         Ok(Response::new(res))
     }
@@ -64,12 +63,12 @@ async fn main() -> Result<(), Box<dyn error::Error>> {
 
     let addr = format!("0.0.0.0:{PORT}").parse()?;
     let msg_service = CommService::default();
-    
+
     Server::builder()
         .add_service(CommunicationServer::new(msg_service))
         .serve(addr)
         .await?;
-    
+
     Ok(())
 }
 
