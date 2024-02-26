@@ -39,6 +39,8 @@ impl Communication for CommService {
 
         let pwd: String = env::var("PWD").expect("PWD must be set");
 
+        log(&format!("Got request: {:?}", &request));
+
         let req = request.into_inner();
 
         if req.auth != pwd {
@@ -48,6 +50,8 @@ impl Communication for CommService {
         }
 
         log("Valid password");
+        
+        log(&format!("Got msg: {}", &req.msg));
 
         logic(&req.msg);
 
@@ -81,6 +85,8 @@ fn logic(to_log: &str) {
         .to_string();
     let file_name = format!("{FILE_PATH}{current_date_str}-{FILE_NAME}");
 
+    log("Opening file");
+
     let file = OpenOptions::new()
         .write(true)
         .create(true)
@@ -99,7 +105,7 @@ fn logic(to_log: &str) {
     writeln!(writer, "{current_datetime_str}").unwrap();
 
     for line in to_log.lines() {
-        log(&format!("Got line: {line}"));
+        log(&format!("Writing line: {line}"));
         writeln!(writer, "{line}").unwrap();
     }
 
