@@ -1,6 +1,7 @@
 extern crate logger_utc as logger;
 
-use std::{env, error};
+use std::env;
+use std::error::Error;
 use std::fs::OpenOptions;
 use std::io::{BufWriter, Write};
 use std::sync::{Arc, Mutex};
@@ -34,7 +35,7 @@ pub struct CommService {}
 #[tonic::async_trait]
 impl Communication for CommService {
     async fn send_msg(&self, request: Request<MsgRequest>)
-                      -> Result<Response<MsgResponse>, Status> {
+        -> Result<Response<MsgResponse>, Status> {
         log("New connection");
 
         let pwd: String = env::var("PWD").expect("PWD must be set");
@@ -50,7 +51,7 @@ impl Communication for CommService {
         }
 
         log("Valid password");
-        
+
         log(&format!("Got msg: {}", &req.msg));
 
         logic(&req.msg);
@@ -62,7 +63,7 @@ impl Communication for CommService {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn error::Error>> {
+async fn main() -> Result<(), Box<dyn Error>> {
     println!("Starting Server");
 
     let addr = format!("0.0.0.0:{PORT}").parse()?;
