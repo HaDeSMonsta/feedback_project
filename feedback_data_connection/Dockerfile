@@ -28,6 +28,6 @@ COPY --from=cacher /usr/local/cargo /usr/local/cargo
 RUN cargo build --release
 
 # 4. Final stage
-FROM rust
+FROM debian
 COPY --from=builder /app/target/release/feedback_data_connection /usr/local/bin/feedback_data_connection
 CMD ["feedback_data_connection"]
