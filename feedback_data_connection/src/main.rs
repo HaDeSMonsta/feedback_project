@@ -6,7 +6,6 @@ use std::io::{BufWriter, Write};
 use std::sync::{Arc, Mutex};
 
 use chrono::Utc;
-use lazy_static::lazy_static;
 use logger::log;
 use tonic::{Request, Response, Status};
 use tonic::transport::Server;
@@ -20,16 +19,14 @@ const FILE_PATH: &'static str = "/feedback/";
 const FILE_NAME: &'static str = "feedback.txt";
 const PORT: u16 = 8080;
 
-lazy_static! {
-    static ref LOCK: Arc<Mutex<()>> = Arc::new(Mutex::new(()));
-}
-
 pub mod comm {
     tonic::include_proto!("comm");
 }
 
 #[derive(Debug, Default)]
-pub struct CommService {}
+pub struct CommService {
+    lock: Arc<Mutex<()>>,
+}
 
 #[tonic::async_trait]
 impl Communication for CommService {
@@ -53,7 +50,10 @@ impl Communication for CommService {
         
         log(&format!("Got msg: {}", &req.msg));
 
-        logic(&req.msg);
+        {
+            let _lock = self.lock.lock().unwrap();
+            logic(&req.msg);
+        }
 
         let res = MsgResponse {};
 
@@ -66,7 +66,10 @@ async fn main() -> Result<(), Box<dyn error::Error>> {
     println!("Starting Server");
 
     let addr = format!("0.0.0.0:{PORT}").parse()?;
-    let msg_service = CommService::default();
+    let lock = Arc::new(Mutex::new(()));
+    let msg_service = CommService {
+        lock,
+    };
 
     Server::builder()
         .add_service(CommunicationServer::new(msg_service))
@@ -77,8 +80,6 @@ async fn main() -> Result<(), Box<dyn error::Error>> {
 }
 
 fn logic(to_log: &str) {
-    let lock = Arc::clone(&*LOCK);
-    let _lock = lock.lock().unwrap(); // Get lock
 
     let current_date_str = Utc::now()
         .format("%Y-%m-%d")
@@ -111,4 +112,4 @@ fn logic(to_log: &str) {
 
     writeln!(writer, "{}\n", "-".repeat(50)).unwrap();
     log("Finished writing, closing connection");
-} // Drop lock
+}
