@@ -1,5 +1,5 @@
 # 1. Prepare dependencies
-FROM rust as planner
+FROM rust:latest as planner
 WORKDIR app
 COPY Cargo.toml .
 COPY Cargo.lock .
@@ -9,14 +9,14 @@ RUN cargo install cargo-chef
 RUN cargo chef prepare  --recipe-path recipe.json
 
 # 2. Cache dependencies
-FROM rust as cacher
+FROM rust:latest as cacher
 WORKDIR app
 COPY --from=planner /app/recipe.json recipe.json
 RUN cargo install cargo-chef
 RUN cargo chef cook --release --recipe-path recipe.json
 
 # 3. Build application
-FROM rust as builder
+FROM rust:latest as builder
 WORKDIR app
 # Dependencies for proto
 RUN apt update
@@ -28,6 +28,6 @@ COPY --from=cacher /usr/local/cargo /usr/local/cargo
 RUN cargo build --release
 
 # 4. Final stage
-FROM debian
+FROM debian:latest
 COPY --from=builder /app/target/release/feedback_data_connection /usr/local/bin/feedback_data_connection
 CMD ["feedback_data_connection"]
