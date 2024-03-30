@@ -10,18 +10,20 @@ pub mod comm {
     tonic::include_proto!("comm");
 }
 
-pub async fn send_msg(msg: String, ip_path: &str, port: u16) -> Result<(), Box<dyn error::Error>> {
+pub async fn send_msg(msg: &str, ip_path: &str, port: u16, auth: &str) -> Result<(), Box<dyn error::Error>> {
     let ip = read_ip_from_file(ip_path)?;
-    let auth = env::var("AUTH").expect("AUTH must be set");
 
     let mut client = CommunicationClient::connect(
         format!("https://{ip}:{port}")
     ).await?;
+    
+    let msg_string = String::from(msg);
+    let auth_string = String::from(auth);
 
     let request = tonic::Request::new(
         MsgRequest {
-            auth,
-            msg,
+            auth: auth_string,
+            msg: msg_string,
         }
     );
 
@@ -40,13 +42,5 @@ pub fn read_ip_from_file(path: &str) -> Result<String, Box<dyn error::Error>> {
     let mut buf_reader = BufReader::new(file);
     let mut ip = String::new();
     buf_reader.read_to_string(&mut ip)?;
-    Ok(
-        ip
-            .trim()
-            .to_string()
-            .replace("set $ip", "")
-            .replace(";", "")
-            .trim()
-            .to_string()
-    )
+    Ok(ip.trim().to_string())
 }

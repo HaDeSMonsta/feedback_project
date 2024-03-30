@@ -28,7 +28,7 @@ fn rocket() -> _ {
     dotenv().expect("Failed to read .env file");
     create_dir_all(LOG_DIR).expect(&format!("Unable to create {LOG_DIR} dir"));
 
-    let (web_port, target_address, target_port) = get_vars();
+    let (web_port, target_address, target_port, _) = get_vars();
 
     println!("User Arguments:\nWebport {web_port}\n\
     IP-config file path: {target_address}\nTarget Port: {target_port}");
@@ -55,10 +55,10 @@ fn feedback_landing_msg(status_msg: &str, colour: &str, initial_msg: &str)
 
 #[post("/", data = "<feedback>")]
 async fn print_feedback(feedback: Form<Feedback>) -> Redirect {
-    let (_, ip_path, target_port) = get_vars();
+    let (_, ip_path, target_port, auth) = get_vars();
 
     let (status_msg, colour, initial_msg) = match client::send_msg(
-        feedback.textbox.to_string(), ip_path.as_str(), target_port,
+        &feedback.textbox.to_string(), &ip_path, target_port, &auth
     ).await {
         Ok(_) => { ("Thank you", "green", "") }
         Err(err) => {
@@ -119,7 +119,7 @@ pub fn get_html_form(msg: Option<&str>, color: Option<&str>, initial_msg: &str) 
     "#, uri = uri!(print_feedback))
 }
 
-fn get_vars() -> (u16, String, u16) {
+fn get_vars() -> (u16, String, u16, String) {
     let web_port: u16 = env::var("WEB_PORT")
         .expect("WEB_PORT must be set")
         .parse()
@@ -130,8 +130,10 @@ fn get_vars() -> (u16, String, u16) {
         .expect("TARGET_PORT must be set")
         .parse()
         .expect("TARGET_PORT must be a valid u16");
+    let auth = env::var("AUTH")
+        .expect("AUTH must be set");
 
-    (web_port, target_address, target_port)
+    (web_port, target_address, target_port, auth)
 }
 
 fn log(to_log: String) {
