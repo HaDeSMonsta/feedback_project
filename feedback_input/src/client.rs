@@ -1,4 +1,4 @@
-use std::{env, error};
+use std::error;
 use std::fs::OpenOptions;
 use std::io::{BufReader, prelude::*};
 

@@ -49,7 +49,7 @@ fn feedback_landing() -> content::RawHtml<String> {
 
 #[get("/?<status_msg>&<colour>&<initial_msg>", format = "html", rank = 1)]
 fn feedback_landing_msg(status_msg: &str, colour: &str, initial_msg: &str)
-                        -> content::RawHtml<String> {
+    -> content::RawHtml<String> {
     content::RawHtml(get_html_form(Some(status_msg), Some(colour), initial_msg))
 }
 
@@ -58,7 +58,7 @@ async fn print_feedback(feedback: Form<Feedback>) -> Redirect {
     let (_, ip_path, target_port, auth) = get_vars();
 
     let (status_msg, colour, initial_msg) = match client::send_msg(
-        &feedback.textbox.to_string(), &ip_path, target_port, &auth
+        &feedback.textbox.to_string(), &ip_path, target_port, &auth,
     ).await {
         Ok(_) => { ("Thank you", "green", "") }
         Err(err) => {
@@ -80,16 +80,16 @@ async fn print_feedback(feedback: Form<Feedback>) -> Redirect {
 pub fn get_html_form(msg: Option<&str>, color: Option<&str>, initial_msg: &str) -> String {
     let thanks_msg = match msg {
         Some(thanks_message) => {
-            Cow::Owned(format!(r#"<p class="thanks-message">{thanks_message}</p>"#))
+            format!(r#"<p class="thanks-message">{thanks_message}</p>"#)
         }
-        None => { Cow::Borrowed("") }
+        None => { String::new() }
     };
 
     let colour = match color {
         Some(c) => {
-            Cow::Borrowed(c)
+            String::from(c)
         }
-        None => { Cow::Borrowed("white") }
+        None => { String::new() }
     };
 
     format!(r#"
