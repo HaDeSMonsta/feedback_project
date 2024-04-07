@@ -8,5 +8,5 @@ services:
       - "7777:8080"
     volumes:
       - /home/hades/rust_projects/feedbackProject/feedback_data_connection/output:/feedback
-    environment:
-      PWD: CHANGEME
+    env_file:
+      - .env

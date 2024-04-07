@@ -16,7 +16,7 @@ pub async fn send_msg(msg: &str, ip_path: &str, port: u16, auth: &str) -> Result
     let mut client = CommunicationClient::connect(
         format!("https://{ip}:{port}")
     ).await?;
-    
+
     let msg_string = String::from(msg);
     let auth_string = String::from(auth);
 
@@ -41,6 +41,6 @@ pub fn read_ip_from_file(path: &str) -> Result<String, Box<dyn error::Error>> {
         .open(path)?;
     let mut buf_reader = BufReader::new(file);
     let mut ip = String::new();
-    buf_reader.read_to_string(&mut ip)?;
-    Ok(ip.trim().to_string())
+    buf_reader.read_line(&mut ip)?;
+    Ok(String::from(ip.trim()))
 }

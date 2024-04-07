@@ -1,9 +1,8 @@
-extern crate logger_utc as logger;
 #[macro_use]
 extern crate rocket;
 extern crate rocket_contrib;
+extern crate logger_utc as logger;
 
-use std::borrow::Cow;
 use std::env;
 use std::fs::create_dir_all;
 
