@@ -7,7 +7,7 @@ use std::io::{BufWriter, Write};
 use std::sync::{Arc, Mutex};
 
 use chrono::Utc;
-use logger::log;
+use logger::{log, log_string};
 use tonic::{Request, Response, Status};
 use tonic::transport::Server;
 
@@ -35,21 +35,21 @@ impl Communication for CommService {
         -> Result<Response<MsgResponse>, Status> {
         log("New connection");
 
-        let pwd: String = env::var("PWD").expect("PWD must be set");
+        let pwd = env::var("PWD").expect("PWD must be set");
 
-        log(&format!("Got request: {:?}", &request));
+        log_string(format!("Got request: {:?}", &request));
 
         let req = request.into_inner();
 
         if req.auth != pwd {
-            log(&format!("Invalid password: {}", req.auth));
+            log_string(format!("Invalid password: {}", req.auth));
             let e = Status::unauthenticated("Invalid authentication");
             return Err(e);
         }
 
         log("Valid password");
 
-        log(&format!("Got msg: {}", &req.msg));
+        log_string(format!("Got msg: {}", &req.msg));
 
         {
             let _lock = self.lock.lock().unwrap();
@@ -64,7 +64,11 @@ impl Communication for CommService {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    println!("Starting Server");
+    log("Checking environment variables");
+    let _ = env::var("PWD");
+    log("Environment variables are set");
+
+    log("Starting Server");
 
     let addr = format!("0.0.0.0:{PORT}").parse()?;
     let lock = Arc::new(Mutex::new(()));
@@ -107,7 +111,7 @@ fn logic(to_log: &str) {
     writeln!(writer, "{current_datetime_str}").unwrap();
 
     for line in to_log.lines() {
-        log(&format!("Writing line: {line}"));
+        log_string(format!("Writing line: {line}"));
         writeln!(writer, "{line}").unwrap();
     }
 
