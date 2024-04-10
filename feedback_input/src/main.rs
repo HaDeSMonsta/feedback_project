@@ -1,7 +1,7 @@
+extern crate logger_utc as logger;
 #[macro_use]
 extern crate rocket;
 extern crate rocket_contrib;
-extern crate logger_utc as logger;
 
 use std::env;
 use std::fs::create_dir_all;
@@ -95,7 +95,7 @@ pub fn get_html_form(msg: Option<&str>, color: Option<&str>, initial_msg: &str) 
         <!DOCTYPE html>
         <html style="background-color: #212121; color: white;">
         <head>
-            <title>Feedback Prog1</title>
+            <title>Feedback Tutorium</title>
             <style>
                 .thanks-message {{
                     color: {colour};
