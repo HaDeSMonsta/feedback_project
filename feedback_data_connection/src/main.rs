@@ -56,7 +56,10 @@ impl Communication for CommService {
             logic(&req.msg);
         }
 
-        let res = MsgResponse {};
+        let res = MsgResponse {
+            code: 202,
+            msg: String::from("Msg received"),
+        };
 
         Ok(Response::new(res))
     }

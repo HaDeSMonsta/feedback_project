@@ -11,4 +11,6 @@ message MsgRequest {
 }
 
 message MsgResponse {
+  int32 code = 1;
+  string msg = 2;
 }
