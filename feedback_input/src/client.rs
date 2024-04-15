@@ -10,7 +10,8 @@ pub mod comm {
     tonic::include_proto!("comm");
 }
 
-pub async fn send_msg(msg: &str, ip_path: &str, port: u16, auth: &str) -> Result<(), Box<dyn error::Error>> {
+pub async fn send_msg(msg: &str, ip_path: &str, port: u16, auth: &str)
+    -> Result<(), Box<dyn error::Error>> {
     let ip = read_ip_from_file(ip_path)?;
 
     let mut client = CommunicationClient::connect(

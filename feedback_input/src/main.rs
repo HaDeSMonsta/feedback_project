@@ -59,7 +59,7 @@ async fn print_feedback(feedback: Form<Feedback>) -> Redirect {
     let (status_msg, colour, initial_msg) = match client::send_msg(
         &feedback.textbox.to_string(), &ip_path, target_port, &auth,
     ).await {
-        Ok(_) => { ("Thank you", "green", "") }
+        Ok(_) => ("Thank you", "green", ""),
         Err(err) => {
             log(err.to_string());
             ("An error occurred while sending the data to the Server", "red",

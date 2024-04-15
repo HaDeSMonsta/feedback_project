@@ -11,10 +11,8 @@ use logger::{log, log_string};
 use tonic::{Request, Response, Status};
 use tonic::transport::Server;
 
-use comm::communication_server::Communication;
-
 use crate::comm::{MsgRequest, MsgResponse};
-use crate::comm::communication_server::CommunicationServer;
+use crate::comm::communication_server::{Communication, CommunicationServer};
 
 const FILE_PATH: &'static str = "/feedback/";
 const FILE_NAME: &'static str = "feedback.txt";
@@ -27,6 +25,7 @@ pub mod comm {
 #[derive(Debug, Default)]
 pub struct CommService {
     lock: Arc<Mutex<()>>,
+    pwd: String,
 }
 
 #[tonic::async_trait]
@@ -35,13 +34,11 @@ impl Communication for CommService {
         -> Result<Response<MsgResponse>, Status> {
         log("New connection");
 
-        let pwd = env::var("PWD").expect("PWD must be set");
-
         log_string(format!("Got request: {:?}", &request));
 
         let req = request.into_inner();
 
-        if req.auth != pwd {
+        if req.auth != self.pwd {
             log_string(format!("Invalid password: {}", req.auth));
             let e = Status::unauthenticated("Invalid authentication");
             return Err(e);
@@ -60,6 +57,8 @@ impl Communication for CommService {
             code: 202,
             msg: String::from("Msg received"),
         };
+        
+        log("Created Response, closing connection");
 
         Ok(Response::new(res))
     }
@@ -72,11 +71,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
     log("Environment variables are set");
 
     log("Starting Server");
+    
+    let pwd = env::var("PWD").expect("PWD must be set");
 
     let addr = format!("0.0.0.0:{PORT}").parse()?;
     let lock = Arc::new(Mutex::new(()));
     let msg_service = CommService {
         lock,
+        pwd,
     };
 
     Server::builder()
@@ -119,5 +121,5 @@ fn logic(to_log: &str) {
     }
 
     writeln!(writer, "{}\n", "-".repeat(50)).unwrap();
-    log("Finished writing, closing connection");
+    log("Finished writing, closing file");
 }
