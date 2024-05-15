@@ -112,6 +112,8 @@ pub fn get_html_form(msg: Option<&str>, color: Option<&str>, initial_msg: &str) 
             <textarea id="textbox" name="textbox" rows="8" cols="50">{initial_msg}</textarea>
             <input type="submit" value="Submit">
         </form>
+        
+        <p style="fonr-size: small; font-style: italic;">Front end is my passion</p>
 
         </body>
         </html>
