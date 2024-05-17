@@ -1,7 +1,6 @@
 extern crate logger_utc as logger;
 
-use std::env;
-use std::error::Error;
+use std::{env, error, io};
 use std::fs::OpenOptions;
 use std::io::{BufWriter, Write};
 use std::sync::{Arc, Mutex};
@@ -48,30 +47,39 @@ impl Communication for CommService {
 
         log_string(format!("Got msg: {}", &req.msg));
 
+        let res;
         {
             let _lock = self.lock.lock().unwrap();
-            logic(&req.msg);
+            res = match logic(&req.msg) {
+                Ok(_) => MsgResponse {
+                    code: 202,
+                    msg: String::from("Msg received"),
+                },
+                Err(e) => {
+                    log_string(format!("Got error: {e}"));
+                    let res = Status::internal(
+                        format!("An error occurred: {e}")
+                    );
+                    log_string(format!("Returning {res}"));
+                    return Err(res);
+                }
+            }
         }
 
-        let res = MsgResponse {
-            code: 202,
-            msg: String::from("Msg received"),
-        };
-        
-        log("Created Response, closing connection");
+        log_string(format!("Created response {res:?}, closing connection"));
 
         Ok(Response::new(res))
     }
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn Error>> {
+async fn main() -> Result<(), Box<dyn error::Error>> {
     log("Checking environment variables");
     let _ = env::var("PWD");
     log("Environment variables are set");
 
     log("Starting Server");
-    
+
     let pwd = env::var("PWD").expect("PWD must be set");
 
     let addr = format!("0.0.0.0:{PORT}").parse()?;
@@ -89,8 +97,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn logic(to_log: &str) {
-
+fn logic(to_log: &str) -> Result<(), Box<dyn error::Error>> {
     let current_date_str = Utc::now()
         .format("%Y-%m-%d")
         .to_string();
@@ -103,23 +110,31 @@ fn logic(to_log: &str) {
         .create(true)
         .append(true)
         .open(file_name)
-        .expect("Unable to open file (probably didn't bind the correct path in Docker)");
+        .map_err(|_| -> Box<dyn error::Error> {
+            let err_msg = String::from(
+                "Unable to open file (probably didn't bind the correct path in Docker)"
+            );
+            Box::new(io::Error::new(
+                io::ErrorKind::NotFound, err_msg,
+            ))
+        })?;
 
     let mut writer = BufWriter::new(file);
 
-    writeln!(writer, "{}", "-".repeat(50)).unwrap();
+    writeln!(writer, "{}", "-".repeat(50))?;
 
     let current_datetime_str = Utc::now()
         .format("[%-Y-%m-%d - %-H:%M:%S]z")
         .to_string();
 
-    writeln!(writer, "{current_datetime_str}").unwrap();
+    writeln!(writer, "{current_datetime_str}")?;
 
     for line in to_log.lines() {
         log_string(format!("Writing line: {line}"));
-        writeln!(writer, "{line}").unwrap();
+        writeln!(writer, "{line}")?;
     }
 
-    writeln!(writer, "{}\n", "-".repeat(50)).unwrap();
+    writeln!(writer, "{}\n", "-".repeat(50))?;
     log("Finished writing, closing file");
+    Ok(())
 }
