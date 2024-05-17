@@ -7,10 +7,9 @@ use std::env;
 use std::fs::create_dir_all;
 
 use dotenv::dotenv;
-use logger::{log_string, log_to_dyn_file};
+use logger::log_to_dyn_file;
 use rocket::{launch, response::Redirect, routes};
 use rocket::form::Form;
-use rocket::form::validate::Contains;
 use rocket::response::content;
 use tonic::Status;
 
