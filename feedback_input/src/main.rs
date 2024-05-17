@@ -7,10 +7,12 @@ use std::env;
 use std::fs::create_dir_all;
 
 use dotenv::dotenv;
-use logger::log_to_dyn_file;
+use logger::{log_string, log_to_dyn_file};
 use rocket::{launch, response::Redirect, routes};
 use rocket::form::Form;
+use rocket::form::validate::Contains;
 use rocket::response::content;
+use tonic::Status;
 
 mod client;
 
@@ -62,7 +64,12 @@ async fn print_feedback(feedback: Form<Feedback>) -> Redirect {
         Ok(_) => ("Thank you", "green", ""),
         Err(err) => {
             log(err.to_string());
-            ("An error occurred while sending the data to the Server", "red",
+            let err_msg = match err.downcast_ref::<Status>() {
+                Some(status) if status.code() == tonic::Code::Internal
+                => "Internal Server error, please contact the site administrator",
+                _ => "An error occurred while sending the data to the Server",
+            };
+            (err_msg, "red",
              feedback.textbox.as_str())
         }
     };
