@@ -1,7 +1,6 @@
 extern crate logger_utc as logger;
 #[macro_use]
 extern crate rocket;
-extern crate rocket_contrib;
 
 use std::env;
 use std::fs::create_dir_all;
@@ -35,7 +34,7 @@ fn rocket() -> _ {
 
     rocket::build()
         .configure(rocket::Config {
-            address: "[::]".parse().unwrap(),
+            address: "::".parse().unwrap(),
             port: web_port,
             ..Default::default()
         })
