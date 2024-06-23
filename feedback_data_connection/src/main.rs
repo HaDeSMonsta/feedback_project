@@ -6,7 +6,7 @@ use std::io::{BufWriter, Write};
 use std::sync::{Arc, Mutex};
 
 use chrono::Utc;
-use logger::{log, log_string};
+use logger::log;
 use tonic::{Request, Response, Status};
 use tonic::transport::Server;
 
@@ -33,19 +33,19 @@ impl Communication for CommService {
         -> Result<Response<MsgResponse>, Status> {
         log("New connection");
 
-        log_string(format!("Got request: {:?}", &request));
+        log(format!("Got request: {:?}", &request));
 
         let req = request.into_inner();
 
         if req.auth != self.pwd {
-            log_string(format!("Invalid password: {}", req.auth));
+            log(format!("Invalid password: {}", req.auth));
             let e = Status::unauthenticated("Invalid authentication");
             return Err(e);
         }
 
         log("Valid password");
 
-        log_string(format!("Got msg: {}", &req.msg));
+        log(format!("Got msg: {}", &req.msg));
 
         let res;
         {
@@ -56,17 +56,17 @@ impl Communication for CommService {
                     msg: String::from("Msg received"),
                 },
                 Err(e) => {
-                    log_string(format!("Got error: {e}"));
+                    log(format!("Got error: {e}"));
                     let res = Status::internal(
                         format!("An error occurred: {e}")
                     );
-                    log_string(format!("Returning {res}"));
+                    log(format!("Returning {res}"));
                     return Err(res);
                 }
             }
         }
 
-        log_string(format!("Created response {res:?}, closing connection"));
+        log(format!("Created response {res:?}, closing connection"));
 
         Ok(Response::new(res))
     }
@@ -130,7 +130,7 @@ fn logic(to_log: &str) -> Result<(), Box<dyn error::Error>> {
     writeln!(writer, "{current_datetime_str}")?;
 
     for line in to_log.lines() {
-        log_string(format!("Writing line: {line}"));
+        log(format!("Writing line: {line}"));
         writeln!(writer, "{line}")?;
     }
 
