@@ -96,33 +96,12 @@ pub fn get_html_form(msg: Option<&str>, color: Option<&str>, initial_msg: &str) 
         None => { String::new() }
     };
 
-    format!(r#"
-        <!DOCTYPE html>
-        <html style="background-color: #212121; color: white;">
-        <head>
-            <title>Feedback Tutorium</title>
-            <style>
-                .thanks-message {{
-                    color: {colour};
-                }}
-            </style>
-        </head>
-        <body>
-
-        <h1>Feedback</h1>
-        {thanks_msg}
-        <p>Please enter the Feedback here:</p>
-
-        <form action="{uri}" method="post">
-            <textarea id="textbox" name="textbox" rows="8" cols="50">{initial_msg}</textarea>
-            <input type="submit" value="Submit">
-        </form>
-        
-        <p style="fonr-size: small; font-style: italic;">Front end is my passion</p>
-
-        </body>
-        </html>
-    "#, uri = uri!(print_feedback))
+    format!(include_str!("../html/page.html"),
+        colour = colour,
+        thanks_msg = thanks_msg,
+        uri = uri!(print_feedback),
+        initial_msg = initial_msg,
+    )
 }
 
 fn get_vars() -> (u16, String, u16, String) {
