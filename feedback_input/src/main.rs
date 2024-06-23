@@ -35,7 +35,7 @@ fn rocket() -> _ {
 
     rocket::build()
         .configure(rocket::Config {
-            address: "0.0.0.0".parse().unwrap(),
+            address: "[::]".parse().unwrap(),
             port: web_port,
             ..Default::default()
         })
