@@ -28,10 +28,7 @@ pub async fn send_msg(msg: &str, ip_path: &str, port: u16, auth: &str)
         }
     );
 
-    let response = client.send_msg(request).await?;
-
-    // TODO error handling
-    println!("{:?}", response);
+    client.send_msg(request).await?;
 
     Ok(())
 }
