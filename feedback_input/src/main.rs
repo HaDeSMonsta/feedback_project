@@ -30,8 +30,10 @@ fn rocket() -> _ {
 
     let (web_port, target_address, target_port, _) = get_vars();
 
-    println!("User Arguments:\nWebport {web_port}\n\
-    IP-config file path: {target_address}\nTarget Port: {target_port}");
+    println!("User Arguments:\n\
+    Webport {web_port}\n\
+    IP-config file path: {target_address}\n\
+    Target Port: {target_port}");
 
     rocket::build()
         .configure(rocket::Config {
@@ -39,18 +41,13 @@ fn rocket() -> _ {
             port: web_port,
             ..Default::default()
         })
-        .mount("/", routes![feedback_landing, feedback_landing_msg, print_feedback])
-}
-
-#[get("/", format = "html", rank = 2)]
-fn feedback_landing() -> content::RawHtml<String> {
-    content::RawHtml(get_html_form(None, None, ""))
+        .mount("/", routes![feedback_landing, print_feedback])
 }
 
 #[get("/?<status_msg>&<colour>&<initial_msg>", format = "html", rank = 1)]
-fn feedback_landing_msg(status_msg: &str, colour: &str, initial_msg: &str)
+fn feedback_landing(status_msg: Option<&str>, colour: Option<&str>, initial_msg: Option<&str>)
     -> content::RawHtml<String> {
-    content::RawHtml(get_html_form(Some(status_msg), Some(colour), initial_msg))
+    content::RawHtml(get_html_form(status_msg, colour, initial_msg))
 }
 
 #[post("/", data = "<feedback>")]
@@ -60,7 +57,7 @@ async fn print_feedback(feedback: Form<Feedback>) -> Redirect {
     let (status_msg, colour, initial_msg) = match client::send_msg(
         &feedback.textbox.to_string(), &ip_path, target_port, &auth,
     ).await {
-        Ok(_) => ("Thank you", "green", ""),
+        Ok(_) => (Some("Thank you"), None, None),
         Err(err) => {
             log(err.to_string());
             let err_msg = match err.downcast_ref::<Status>() {
@@ -68,40 +65,28 @@ async fn print_feedback(feedback: Form<Feedback>) -> Redirect {
                 => "Internal Server error, please contact the site administrator",
                 _ => "An error occurred while sending the data to the Server",
             };
-            (err_msg, "red",
-             feedback.textbox.as_str())
+            (Some(err_msg), Some("red"), Some(feedback.textbox.as_str()))
         }
     };
 
-    let status_msg = urlencoding::encode(status_msg);
-    let initial_msg = urlencoding::encode(initial_msg.trim());
-
-    Redirect::to(
-        format!("{}?status_msg={status_msg}&colour={colour}&initial_msg={initial_msg}",
-                uri!(feedback_landing))
-    )
+    Redirect::to(uri!(feedback_landing(status_msg, colour, initial_msg)))
 }
 
-pub fn get_html_form(msg: Option<&str>, color: Option<&str>, initial_msg: &str) -> String {
+pub fn get_html_form(msg: Option<&str>, color: Option<&str>, initial_msg: Option<&str>) -> String {
     let thanks_msg = msg.unwrap_or("");
+    let colour = color.unwrap_or("green");
+    let initial_msg = initial_msg.unwrap_or("");
 
     let spinner = if rand::thread_rng().gen_range(0..1_000) == 0 {
         "animate-spin"
     } else { "" };
 
-    let colour = match color {
-        Some(c) => {
-            String::from(c)
-        }
-        None => { String::new() }
-    };
-
     format!(include_str!("../html/index.html"),
-        colour = colour,
-        thanks_msg = thanks_msg,
-        uri = uri!(print_feedback),
-        initial_msg = initial_msg,
-        spin = spinner,
+            colour = colour,
+            thanks_msg = thanks_msg,
+            uri = uri!(print_feedback),
+            initial_msg = initial_msg,
+            spin = spinner,
     )
 }
 
