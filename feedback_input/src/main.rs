@@ -7,6 +7,7 @@ use std::fs::create_dir_all;
 
 use dotenv::dotenv;
 use logger::log_to_dyn_file;
+use rand::Rng;
 use rocket::{launch, response::Redirect, routes};
 use rocket::form::Form;
 use rocket::response::content;
@@ -82,12 +83,11 @@ async fn print_feedback(feedback: Form<Feedback>) -> Redirect {
 }
 
 pub fn get_html_form(msg: Option<&str>, color: Option<&str>, initial_msg: &str) -> String {
-    let thanks_msg = match msg {
-        Some(thanks_message) => {
-            format!(r#"<p class="thanks-message">{thanks_message}</p>"#)
-        }
-        None => { String::new() }
-    };
+    let thanks_msg = msg.unwrap_or("");
+
+    let spinner = if rand::thread_rng().gen_range(0..1_000) == 0 {
+        "animate-spin"
+    } else { "" };
 
     let colour = match color {
         Some(c) => {
@@ -96,11 +96,12 @@ pub fn get_html_form(msg: Option<&str>, color: Option<&str>, initial_msg: &str) 
         None => { String::new() }
     };
 
-    format!(include_str!("../html/page.html"),
+    format!(include_str!("../html/index.html"),
         colour = colour,
         thanks_msg = thanks_msg,
         uri = uri!(print_feedback),
         initial_msg = initial_msg,
+        spin = spinner,
     )
 }
 
