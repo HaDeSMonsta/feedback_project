@@ -81,7 +81,7 @@ pub fn get_html_form(msg: Option<&str>, color: Option<&str>, initial_msg: Option
         "animate-spin"
     } else { "" };
 
-    format!(include_str!("../html/index.html"),
+    format!(include_str!("../html/DEUTSCHLAND.html"),
             colour = colour,
             thanks_msg = thanks_msg,
             uri = uri!(print_feedback),

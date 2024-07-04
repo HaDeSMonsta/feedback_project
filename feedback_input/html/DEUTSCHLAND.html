@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback Tutorium</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {{
+            darkMode: 'class',
+            theme: {{
+                extend: {{
+                    backgroundImage: {{
+                        'german-flag': 'linear-gradient(0deg, #FFCC00 0%, #FFCC00 33.33%, #DD0000 33.33%, #DD0000 66.66%, #000000 66.66%, #000000 100%)'
+                    }}
+                }}
+            }}
+        }};
+
+
+        document.addEventListener('DOMContentLoaded', () => {{
+            document.documentElement.classList.add('dark');
+        }});
+    </script>
+</head>
+<body class="relative flex flex-col items-center min-h-screen p-4 bg-german-flag text-black dark:bg-gray-900 dark:text-white transition-colors duration-300">
+    <h1 class="text-3xl font-bold mb-6">Feedback</h1>
+
+    <div class="w-full max-w-lg text-center mb-4 thanks-message">
+        {thanks_msg}
+    </div>
+
+    <p class="text-lg mb-4">Please enter the Feedback here:</p>
+
+    <form action="{uri}" method="post" class="w-full max-w-lg">
+        <textarea id="textbox" name="textbox" rows="8" class="w-full p-2 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded mb-4 resize-none">{initial_msg}</textarea>
+        <button type="submit" class="w-full bg-indigo-700 hover:bg-indigo-800 text-white font-bold py-2 px-4 rounded {spin}">
+            Submit
+        </button>
+    </form>
+
+    <p class="text-sm text-black italic mt-8">Front end is
+        <b class="tracking-wide delay-1000 ease-in-out">actually</b>
+        my
+        <a href="https://www.youtube.com/channel/UCe40qwYch8JcmBST_BWaYNA" class="text-blue-500 underline">(Loris)</a>
+        passion
+    </p>
+
+    <style>
+        .thanks-message {{
+            color: {colour};
+        }}
+
+        .switch input {{
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }}
+    </style>
+</body>
+</html>
+
+
