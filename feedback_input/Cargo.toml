@@ -12,14 +12,14 @@ name = "feedback_input"
 path = "src/main.rs"
 
 # cargo build --features deutschland --bin DEUTSCHLAND
-# Do not buil both with `cargo build --features deutschland`
+# Do not build both with `cargo build --features deutschland`
 [[bin]]
 name = "DEUTSCHLAND"
 path = "src/main.rs"
 required-features = ["deutschland"]
 
 # Explanation: Cargo tries to build all target when no `--bin` is specified
-# Without the feature we cannot bild DEUTSCHLAND
+# Without the feature we cannot build DEUTSCHLAND
 # But with the features both will be built, which would activate the feature in both bins, what we don't want
 
 [dependencies]
