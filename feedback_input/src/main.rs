@@ -64,7 +64,7 @@ async fn print_feedback(feedback: Form<Feedback>) -> Redirect {
             let err_msg = match err.downcast_ref::<Status>() {
                 Some(status) if status.code() == tonic::Code::Internal
                 => "Internal Server error, please contact the site administrator",
-                _ => "An error occurred while sending the data to the Server",
+                _ => "An error occurred while sending data to the Server",
             };
             (Some(err_msg), Some("red"), Some(feedback.textbox.as_str()))
         }
@@ -82,14 +82,14 @@ pub fn get_html_form(msg: Option<&str>, color: Option<&str>, initial_msg: Option
     let spinner = if rand::thread_rng().gen_range(0..1_000) == 0 {
         "animate-spin"
     } else { "" };
-    
+
     #[cfg(not(feature = "deutschland"))]
     let res = format!(include_str!("../html/index.html"),
-            colour = colour,
-            thanks_msg = thanks_msg,
-            uri = uri!(print_feedback),
-            initial_msg = initial_msg,
-            spin = spinner,
+                      colour = colour,
+                      thanks_msg = thanks_msg,
+                      uri = uri!(print_feedback),
+                      initial_msg = initial_msg,
+                      spin = spinner,
     );
 
     #[cfg(feature = "deutschland")]
@@ -99,7 +99,7 @@ pub fn get_html_form(msg: Option<&str>, color: Option<&str>, initial_msg: Option
                       uri = uri!(print_feedback),
                       initial_msg = initial_msg,
     );
-    
+
     res
 }
 
