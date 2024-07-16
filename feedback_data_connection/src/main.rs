@@ -3,7 +3,8 @@ extern crate logger_utc as logger;
 use std::{env, error, io};
 use std::fs::OpenOptions;
 use std::io::{BufWriter, Write};
-use std::sync::{Arc, Mutex};
+use std::net::{IpAddr, Ipv6Addr, SocketAddr};
+use std::sync::Mutex;
 
 use chrono::Utc;
 use logger::log;
@@ -23,7 +24,7 @@ pub mod comm {
 
 #[derive(Debug, Default)]
 pub struct CommService {
-    lock: Arc<Mutex<()>>,
+    lock: Mutex<()>,
     pwd: String,
 }
 
@@ -75,15 +76,14 @@ impl Communication for CommService {
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn error::Error>> {
     log("Checking environment variables");
-    let _ = env::var("PWD");
+    let pwd = env::var("PWD")
+        .expect("PWD is not set");
     log("Environment variables are set");
 
     log("Starting Server");
 
-    let pwd = env::var("PWD").expect("PWD must be set");
-
-    let addr = format!("0.0.0.0:{PORT}").parse()?;
-    let lock = Arc::new(Mutex::new(()));
+    const ADDR: SocketAddr = SocketAddr::new(IpAddr::V6(Ipv6Addr::UNSPECIFIED), PORT);
+    let lock = Mutex::new(());
     let msg_service = CommService {
         lock,
         pwd,
@@ -91,7 +91,7 @@ async fn main() -> Result<(), Box<dyn error::Error>> {
 
     Server::builder()
         .add_service(CommunicationServer::new(msg_service))
-        .serve(addr)
+        .serve(ADDR)
         .await?;
 
     Ok(())
@@ -111,11 +111,10 @@ fn logic(to_log: &str) -> Result<(), Box<dyn error::Error>> {
         .append(true)
         .open(file_name)
         .map_err(|_| -> Box<dyn error::Error> {
-            let err_msg = String::from(
-                "Unable to open file (probably didn't bind the correct path in Docker)"
-            );
+            const ERR_MSG: &'static str = "Unable to open file \
+            (probably didn't bind the correct path in Docker)";
             Box::new(io::Error::new(
-                io::ErrorKind::NotFound, err_msg,
+                io::ErrorKind::NotFound, ERR_MSG,
             ))
         })?;
 
