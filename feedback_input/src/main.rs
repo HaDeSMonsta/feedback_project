@@ -78,27 +78,32 @@ pub fn get_html_form(msg: Option<&str>, color: Option<&str>, initial_msg: Option
     let colour = color.unwrap_or("green");
     let initial_msg = initial_msg.unwrap_or("");
 
+    let res;
+   
     #[cfg(not(feature = "deutschland"))]
-    let spinner = if rand::thread_rng().gen_range(0..1_000) == 0 {
-        "animate-spin"
-    } else { "" };
+    {
+        let spinner = if rand::thread_rng().gen_range(0..1_000) == 0 {
+            "animate-spin"
+        } else { "" };
 
-    #[cfg(not(feature = "deutschland"))]
-    let res = format!(include_str!("../html/index.html"),
+        res = format!(include_str!("../html/index.html"),
                       colour = colour,
                       thanks_msg = thanks_msg,
                       uri = uri!(print_feedback),
                       initial_msg = initial_msg,
                       spin = spinner,
-    );
+        );
+    }
 
     #[cfg(feature = "deutschland")]
-    let res = format!(include_str!("../html/DEUTSCHLAND.html"),
+    {
+        res = format!(include_str!("../html/DEUTSCHLAND.html"),
                       colour = colour,
                       thanks_msg = thanks_msg,
                       uri = uri!(print_feedback),
                       initial_msg = initial_msg,
-    );
+        );
+    }
 
     res
 }
