@@ -1,0 +1,10 @@
+run:
+    cargo run --bin feedback_input
+build:
+    cargo build --bin feedback_input
+clean:
+    cargo clean
+release:
+    cargo build --bin feedback_input --release
+deutschland:
+    cargo build --bin DEUTSCHLAND --features deutschland --release
