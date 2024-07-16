@@ -1,5 +1,7 @@
 run:
     cargo run --bin feedback_input
+run_de:
+    cargo run --bin DEUTSCHLAND --features deutschland
 build:
     cargo build --bin feedback_input
 clean:

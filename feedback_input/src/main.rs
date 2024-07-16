@@ -73,36 +73,48 @@ async fn print_feedback(feedback: Form<Feedback>) -> Redirect {
     Redirect::to(uri!(feedback_landing(status_msg, colour, initial_msg)))
 }
 
-pub fn get_html_form(msg: Option<&str>, color: Option<&str>, initial_msg: Option<&str>) -> String {
+pub fn get_html_form(msg: Option<&str>, colour: Option<&str>, initial_msg: Option<&str>) -> String {
     let thanks_msg = msg.unwrap_or("");
-    let colour = color.unwrap_or("green");
+    let colour = colour.unwrap_or("green");
     let initial_msg = initial_msg.unwrap_or("");
+    let uri = uri!(print_feedback).to_string();
+
+    #[allow(unused_mut)]
+    let mut replacements = vec![
+        ("{colour}", colour),
+        ("{thanks_msg}", thanks_msg),
+        ("{uri}", &uri),
+        ("{initial_msg}", initial_msg),
+    ];
 
     let res;
-   
+
     #[cfg(not(feature = "deutschland"))]
     {
         let spinner = if rand::thread_rng().gen_range(0..1_000) == 0 {
             "animate-spin"
         } else { "" };
 
-        res = format!(include_str!("../html/index.html"),
-                      colour = colour,
-                      thanks_msg = thanks_msg,
-                      uri = uri!(print_feedback),
-                      initial_msg = initial_msg,
-                      spin = spinner,
-        );
+        replacements.extend([("", "")]);
+
+        let mut raw = String::from(include_str!("../html/index.html"));
+
+        for (from, to) in replacements {
+            raw = raw.replace(from, to);
+        }
+
+        res = raw;
     }
 
     #[cfg(feature = "deutschland")]
     {
-        res = format!(include_str!("../html/DEUTSCHLAND.html"),
-                      colour = colour,
-                      thanks_msg = thanks_msg,
-                      uri = uri!(print_feedback),
-                      initial_msg = initial_msg,
-        );
+        let mut raw = String::from(include_str!("../html/DEUTSCHLAND.html"));
+
+        for (from, to) in replacements {
+            raw = raw.replace(from, to);
+        }
+
+        res = raw
     }
 
     res
