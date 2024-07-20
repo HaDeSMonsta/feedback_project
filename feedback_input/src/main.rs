@@ -46,7 +46,7 @@ fn rocket() -> _ {
 }
 
 #[get("/?<status_msg>&<colour>&<initial_msg>", format = "html", rank = 1)]
-fn feedback_landing(status_msg: Option<&str>, colour: Option<&str>, initial_msg: Option<&str>)
+fn feedback_landing(status_msg: Option<String>, colour: Option<String>, initial_msg: Option<String>)
     -> content::RawHtml<String> {
     content::RawHtml(get_html_form(status_msg, colour, initial_msg))
 }
@@ -73,17 +73,24 @@ async fn print_feedback(feedback: Form<Feedback>) -> Redirect {
     Redirect::to(uri!(feedback_landing(status_msg, colour, initial_msg)))
 }
 
-pub fn get_html_form(msg: Option<&str>, colour: Option<&str>, initial_msg: Option<&str>) -> String {
-    let thanks_msg = msg.unwrap_or("");
-    let colour = colour.unwrap_or("green");
-    let initial_msg = initial_msg.unwrap_or("");
+pub fn get_html_form(msg: Option<String>, colour: Option<String>, initial_msg: Option<String>) 
+    -> String {
+    let thanks_msg = msg.unwrap_or(
+        String::from("")
+    );
+    let colour = colour.unwrap_or(
+        String::from("green")
+    );
+    let initial_msg = initial_msg.unwrap_or(
+        String::from("")
+    );
     let uri = uri!(print_feedback).to_string();
 
     #[allow(unused_mut)]
     let mut replacements = vec![
         ("{colour}", colour),
         ("{thanks_msg}", thanks_msg),
-        ("{uri}", &uri),
+        ("{uri}", uri),
         ("{initial_msg}", initial_msg),
     ];
 
@@ -100,7 +107,7 @@ pub fn get_html_form(msg: Option<&str>, colour: Option<&str>, initial_msg: Optio
         let mut raw = String::from(include_str!("../html/index.html"));
 
         for (from, to) in replacements {
-            raw = raw.replace(from, to);
+            raw = raw.replace(from, &to);
         }
 
         res = raw;
@@ -111,7 +118,7 @@ pub fn get_html_form(msg: Option<&str>, colour: Option<&str>, initial_msg: Optio
         let mut raw = String::from(include_str!("../html/DEUTSCHLAND.html"));
 
         for (from, to) in replacements {
-            raw = raw.replace(from, to);
+            raw = raw.replace(from, &to);
         }
 
         res = raw
