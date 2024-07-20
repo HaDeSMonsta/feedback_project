@@ -102,7 +102,7 @@ pub fn get_html_form(msg: Option<String>, colour: Option<String>, initial_msg: O
             "animate-spin"
         } else { "" };
 
-        replacements.extend([("", "")]);
+        replacements.extend([("{spin}", String::from(spinner))]);
 
         let mut raw = String::from(include_str!("../html/index.html"));
 
