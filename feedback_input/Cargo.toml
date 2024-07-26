@@ -6,22 +6,6 @@ edition = "2021"
 [features]
 deutschland = []
 
-# cargo build
-[[bin]]
-name = "feedback_input"
-path = "src/main.rs"
-
-# cargo build --features deutschland --bin DEUTSCHLAND
-# Do not build both with `cargo build --features deutschland`
-[[bin]]
-name = "DEUTSCHLAND"
-path = "src/main.rs"
-required-features = ["deutschland"]
-
-# Explanation: Cargo tries to build all target when no `--bin` is specified
-# Without the feature we cannot build DEUTSCHLAND
-# But with the features both will be built, which would activate the feature in both bins, what we don't want
-
 [dependencies]
 rocket = "0.5.1"
 urlencoding = "2.1.3"
