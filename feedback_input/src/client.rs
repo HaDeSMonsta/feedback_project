@@ -2,15 +2,13 @@ use std::error;
 use std::fs::OpenOptions;
 use std::io::{BufReader, prelude::*};
 
-use comm::communication_client::CommunicationClient;
+use comm::{communication_client::CommunicationClient, MsgRequest};
 
-use crate::client::comm::MsgRequest;
-
-pub mod comm {
+mod comm {
     tonic::include_proto!("comm");
 }
 
-pub async fn send_msg(msg: &str, ip_path: &str, port: u16, auth: &str)
+pub(crate) async fn send_msg(msg: &str, ip_path: &str, port: u16, auth: &str)
     -> Result<(), Box<dyn error::Error>> {
     let ip = read_ip_from_file(ip_path)?;
 
@@ -33,7 +31,7 @@ pub async fn send_msg(msg: &str, ip_path: &str, port: u16, auth: &str)
     Ok(())
 }
 
-pub fn read_ip_from_file(path: &str) -> Result<String, Box<dyn error::Error>> {
+fn read_ip_from_file(path: &str) -> Result<String, Box<dyn error::Error>> {
     let file = OpenOptions::new()
         .read(true)
         .open(path)?;
