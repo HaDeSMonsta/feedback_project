@@ -73,25 +73,33 @@ async fn print_feedback(feedback: Form<Feedback>) -> Redirect {
     Redirect::to(uri!(feedback_landing(status_msg, colour, initial_msg)))
 }
 
-pub fn get_html_form(msg: Option<String>, colour: Option<String>, initial_msg: Option<String>) 
+fn get_html_form(thanks_msg: Option<String>, colour: Option<String>, initial_msg: Option<String>)
     -> String {
-    let thanks_msg = msg.unwrap_or(
-        String::from("")
-    );
-    let colour = colour.unwrap_or(
+    let thanks_msg = if let Some(message) = thanks_msg {
+        message
+    } else {
+        String::new()
+    };
+
+    let colour = if let Some(c) = colour {
+        c
+    } else {
         String::from("green")
-    );
-    let initial_msg = initial_msg.unwrap_or(
-        String::from("")
-    );
+    };
+
+    let initial_msg = if let Some(initial) = initial_msg {
+        initial
+    } else {
+        String::new()
+    };
+
     let uri = uri!(print_feedback).to_string();
 
-    #[allow(unused_mut)]
-    let mut replacements = vec![
-        ("{colour}", colour),
+    let replacements = [
         ("{thanks_msg}", thanks_msg),
-        ("{uri}", uri),
+        ("{colour}", colour),
         ("{initial_msg}", initial_msg),
+        ("{uri}", uri),
     ];
 
     let res;
@@ -102,13 +110,12 @@ pub fn get_html_form(msg: Option<String>, colour: Option<String>, initial_msg: O
             "animate-spin"
         } else { "" };
 
-        replacements.extend([("{spin}", String::from(spinner))]);
-
         let mut raw = String::from(include_str!("../html/index.html"));
 
         for (from, to) in replacements {
             raw = raw.replace(from, &to);
         }
+        raw = raw.replace("{spin}", spinner);
 
         res = raw;
     }
