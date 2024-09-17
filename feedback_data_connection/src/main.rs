@@ -22,7 +22,6 @@ pub mod comm {
     tonic::include_proto!("comm");
 }
 
-#[derive(Debug, Default)]
 pub struct CommService {
     lock: Mutex<()>,
     pwd: String,
