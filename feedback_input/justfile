@@ -1,12 +1,15 @@
+target := "x86_64-unknown-linux-musl"
+de := "deutschland"
+
 run:
     cargo run
 run_de:
-    cargo run --features deutschland
+    cargo run --features {{de}}
 build:
     cargo build
 clean:
     cargo clean
 release:
-    cargo build --release --target x86_64-unknown-linux-musl
+    cargo build --release --target {{target}}
 deutschland:
-    cargo build --features deutschland --release --target x86_64-unknown-linux-musl
+    cargo build --features {{de}} --release --target {{target}}
