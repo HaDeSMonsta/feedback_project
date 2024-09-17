@@ -1,12 +1,12 @@
 run:
-    cargo run --bin feedback_input
+    cargo run
 run_de:
-    cargo run --bin DEUTSCHLAND --features deutschland
+    cargo run --features deutschland
 build:
-    cargo build --bin feedback_input
+    cargo build
 clean:
     cargo clean
 release:
-    cargo build --bin feedback_input --release
+    cargo build --release --target x86_64-unknown-linux-musl
 deutschland:
-    cargo build --bin DEUTSCHLAND --features deutschland --release
+    cargo build --features deutschland --release --target x86_64-unknown-linux-musl

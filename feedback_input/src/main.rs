@@ -152,5 +152,5 @@ fn get_vars() -> (u16, String, u16, String) {
 }
 
 fn log(to_log: String) {
-    log_to_dyn_file(&to_log, Some(LOG_DIR), LOG_FILE_NAME).unwrap();
+    log_to_dyn_file(to_log, Some(LOG_DIR), LOG_FILE_NAME).unwrap();
 }
