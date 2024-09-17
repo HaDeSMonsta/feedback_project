@@ -1,7 +1,8 @@
 Dockerfile
 docker-compose.yaml
+.git/
 .gitignore
+.idea/
 README.md
 .env*
-output/
 target/
