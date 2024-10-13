@@ -9,9 +9,9 @@ use dotenv::dotenv;
 use logger::log_to_dyn_file;
 #[cfg(not(feature = "deutschland"))]
 use rand::Rng;
-use rocket::{launch, response::Redirect, routes};
 use rocket::form::Form;
 use rocket::response::content;
+use rocket::{launch, response::Redirect, routes};
 use tonic::Status;
 
 mod client;
@@ -75,23 +75,9 @@ async fn print_feedback(feedback: Form<Feedback>) -> Redirect {
 
 fn get_html_form(thanks_msg: Option<String>, colour: Option<String>, initial_msg: Option<String>)
     -> String {
-    let thanks_msg = if let Some(message) = thanks_msg {
-        message
-    } else {
-        String::new()
-    };
-
-    let colour = if let Some(c) = colour {
-        c
-    } else {
-        String::from("green")
-    };
-
-    let initial_msg = if let Some(initial) = initial_msg {
-        initial
-    } else {
-        String::new()
-    };
+    let thanks_msg = thanks_msg.unwrap_or(String::new());
+    let colour = colour.unwrap_or(String::from("green"));
+    let initial_msg = initial_msg.unwrap_or(String::new());
 
     let uri = uri!(print_feedback).to_string();
 
