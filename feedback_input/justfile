@@ -1,8 +1,17 @@
 target := "x86_64-unknown-linux-musl"
 de := "deutschland"
 
+clear:
+	clear
 run:
 	cargo run
+drun: clear
+	docker build -t "hadesmonsta/feedback_input" ./
+	docker compose up
+drelease: clear
+	docker login
+	docker build -t "hadesmonsta/feedback_input" ./
+	docker push "hadesmonsta/feedback_input"
 run_de:
 	cargo run --features {{de}}
 build:

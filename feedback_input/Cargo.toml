@@ -1,6 +1,6 @@
 [package]
 name = "feedback_input"
-version = "0.1.2"
+version = "0.2.0"
 edition = "2021"
 
 [features]
@@ -11,10 +11,11 @@ rocket = "0.5.1"
 urlencoding = "2.1.3"
 dotenv = "0.15.0"
 logger_utc = "0.2.0"
-tonic = "0.12.2"
-prost = "0.13.2"
-tokio = { version = "1.40.0", features = ["macros", "rt-multi-thread"] }
-rand = "0.9.0-alpha.2"
+tonic = "0.12.3"
+prost = "0.13.4"
+tokio = { version = "1.42.0", features = ["macros", "rt-multi-thread"] }
+rand = "0.9.0-beta.1"
+anyhow = "1.0.94"
 
 [build-dependencies]
-tonic-build = "0.12.2"
+tonic-build = "0.12.3"

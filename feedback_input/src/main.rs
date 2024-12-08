@@ -4,45 +4,41 @@ extern crate rocket;
 
 use std::env;
 use std::fs::create_dir_all;
-
-use dotenv::dotenv;
+use std::net::Ipv6Addr;
+use std::sync::LazyLock;
+use anyhow::{Context, Result};
 use logger::log_to_dyn_file;
 #[cfg(not(feature = "deutschland"))]
 use rand::Rng;
 use rocket::form::Form;
 use rocket::response::content;
-use rocket::{launch, response::Redirect, routes};
+use rocket::{response::Redirect, routes};
 use tonic::Status;
+use crate::client::send_msg;
 
 mod client;
 
-const LOG_DIR: &'static str = "logs/";
+const LOG_DIR: &'static str = "/logs/";
 const LOG_FILE_NAME: &'static str = "err.log";
+
+pub const PORT: LazyLock<u16> = LazyLock::new(|| {
+    env::var("WEB_PORT")
+        .expect("WEB_PORT must be set")
+        .parse()
+        .expect("WEB_PORT must be a valid u16")
+});
+pub const SERVER_ADDR: LazyLock<String> = LazyLock::new(|| {
+    env::var("SERVER_ADDR")
+        .expect("SERVER_ADDR must be set")
+});
+pub const AUTH: LazyLock<String> = LazyLock::new(|| {
+    env::var("AUTH")
+        .expect("AUTH must be set")
+});
 
 #[derive(FromForm)]
 struct Feedback {
     textbox: String,
-}
-
-#[launch]
-fn rocket() -> _ {
-    dotenv().expect("Failed to read .env file");
-    create_dir_all(LOG_DIR).expect(&format!("Unable to create {LOG_DIR} dir"));
-
-    let (web_port, target_address, target_port, _) = get_vars();
-
-    println!("User Arguments:\n\
-    Webport {web_port}\n\
-    IP-config file path: {target_address}\n\
-    Target Port: {target_port}");
-
-    rocket::build()
-        .configure(rocket::Config {
-            address: "::".parse().unwrap(),
-            port: web_port,
-            ..Default::default()
-        })
-        .mount("/", routes![feedback_landing, print_feedback])
 }
 
 #[get("/?<status_msg>&<colour>&<initial_msg>", format = "html", rank = 1)]
@@ -53,10 +49,9 @@ fn feedback_landing(status_msg: Option<String>, colour: Option<String>, initial_
 
 #[post("/", data = "<feedback>")]
 async fn print_feedback(feedback: Form<Feedback>) -> Redirect {
-    let (_, ip_path, target_port, auth) = get_vars();
 
-    let (status_msg, colour, initial_msg) = match client::send_msg(
-        &feedback.textbox.to_string(), &ip_path, target_port, &auth,
+    let (status_msg, colour, initial_msg) = match send_msg(
+        &feedback.textbox.to_string()
     ).await {
         Ok(_) => (Some("Thank you"), None, None),
         Err(err) => {
@@ -92,7 +87,7 @@ fn get_html_form(thanks_msg: Option<String>, colour: Option<String>, initial_msg
 
     #[cfg(not(feature = "deutschland"))]
     {
-        let spinner = if rand::thread_rng().gen_range(0..1_000) == 0 {
+        let spinner = if rand::rng().random_range(0..1_000) == 0 {
             "animate-spin"
         } else { "" };
 
@@ -120,23 +115,30 @@ fn get_html_form(thanks_msg: Option<String>, colour: Option<String>, initial_msg
     res
 }
 
-fn get_vars() -> (u16, String, u16, String) {
-    let web_port: u16 = env::var("WEB_PORT")
-        .expect("WEB_PORT must be set")
-        .parse()
-        .expect("WEB_PORT must be a valid u16");
-    let target_address = env::var("IP_PATH")
-        .expect("IP_PATH must be set");
-    let target_port: u16 = env::var("TARGET_PORT")
-        .expect("TARGET_PORT must be set")
-        .parse()
-        .expect("TARGET_PORT must be a valid u16");
-    let auth = env::var("AUTH")
-        .expect("AUTH must be set");
-
-    (web_port, target_address, target_port, auth)
-}
-
 fn log(to_log: String) {
     log_to_dyn_file(to_log, Some(LOG_DIR), LOG_FILE_NAME).unwrap();
+}
+
+#[tokio::main]
+async fn main() -> Result<()> {
+    let _ = dotenv::dotenv(); // If in docker, this must be allowed to fail
+    create_dir_all(LOG_DIR).expect(&format!("Unable to create {LOG_DIR} dir"));
+
+    let _ = AUTH.as_str();
+    println!("Env Arguments (excluding auth, but auth is set):\n\
+    Webport {}\n\
+    Target Server Addr: {}", *PORT, *SERVER_ADDR);
+
+    rocket::build()
+        .configure(rocket::Config {
+            address: Ipv6Addr::UNSPECIFIED.into(),
+            port: *PORT,
+            ..Default::default()
+        })
+        .mount("/", routes![feedback_landing, print_feedback])
+        .launch()
+        .await
+        .with_context(|| "The server failed")?;
+
+    Ok(())
 }
