@@ -21,6 +21,6 @@ COPY . .
 COPY --from=cacher /app/target target
 RUN cargo build --release
 
-FROM debian:latest
+FROM debian:stable-slim
 COPY --from=builder /app/target/release/feedback_input /usr/local/bin/feedback_input
 CMD [ "feedback_input" ]
