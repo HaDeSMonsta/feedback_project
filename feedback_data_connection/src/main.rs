@@ -1,22 +1,45 @@
-extern crate logger_utc as logger;
-
-use std::{env, error, io};
+use crate::comm::communication_server::{Communication, CommunicationServer};
+use crate::comm::{MsgRequest, MsgResponse};
+use anyhow::{Context, Result};
+use chrono::Utc;
+use std::cell::LazyCell;
+use std::env;
 use std::fs::OpenOptions;
 use std::io::{BufWriter, Write};
 use std::net::{IpAddr, Ipv6Addr, SocketAddr};
 use std::sync::Mutex;
-
-use chrono::Utc;
-use logger::log;
-use tonic::{Request, Response, Status};
 use tonic::transport::Server;
-
-use crate::comm::{MsgRequest, MsgResponse};
-use crate::comm::communication_server::{Communication, CommunicationServer};
+use tonic::{Request, Response, Status};
+use tracing::{debug, error, info, subscriber, Level};
+use tracing_subscriber::FmtSubscriber;
 
 const FILE_PATH: &'static str = "/feedback/";
 const FILE_NAME: &'static str = "feedback.txt";
 const PORT: u16 = 8080;
+
+const LOG_LEVEL: LazyCell<Level> = LazyCell::new(|| {
+    const ENV_KEY: &'static str = "LOG_LEVEL";
+    let Ok(log_level) = env::var(ENV_KEY) else {
+        #[cfg(debug_assertions)]
+        return Level::DEBUG;
+        #[cfg(not(debug_assertions))]
+        return Level::INFO;
+    };
+    match log_level.trim().to_lowercase().as_str() {
+        "trace" => Level::TRACE,
+        "debug" => Level::DEBUG,
+        "info" => Level::INFO,
+        "warn" => Level::WARN,
+        "error" => Level::ERROR,
+        _ => {
+            println!("WARNING: {ENV_KEY} is set, but the value is invalid, using default");
+            #[cfg(debug_assertions)]
+            return Level::DEBUG;
+            #[cfg(not(debug_assertions))]
+            return Level::INFO;
+        }
+    }
+});
 
 pub mod comm {
     tonic::include_proto!("comm");
@@ -29,92 +52,86 @@ pub struct CommService {
 
 #[tonic::async_trait]
 impl Communication for CommService {
-    async fn send_msg(&self, request: Request<MsgRequest>)
-        -> Result<Response<MsgResponse>, Status> {
-        log("New connection");
+    async fn send_msg(
+        &self,
+        request: Request<MsgRequest>,
+    ) -> Result<Response<MsgResponse>, Status> {
+        info!("New connection");
 
-        log(format!("Got request: {:?}", &request));
+        debug!("Got request: {request:?}");
 
         let req = request.into_inner();
 
         if req.auth != self.pwd {
-            log(format!("Invalid password: {}", req.auth));
-            let e = Status::unauthenticated("Invalid authentication");
-            return Err(e);
+            info!("Invalid authentication");
+            debug!("Password: {}", req.auth);
+            debug!("Msg: {}", &req.msg);
+            return Err(Status::unauthenticated("Invalid authentication"));
         }
 
-        log("Valid password");
+        info!("Valid password");
+        debug!("Locking");
+        let _lock = self.lock.lock().unwrap();
 
-        log(format!("Got msg: {}", &req.msg));
+        info!("Got msg: {}", &req.msg);
 
-        let res;
-        {
-            let _lock = self.lock.lock().unwrap();
-            res = match logic(&req.msg) {
-                Ok(_) => MsgResponse {
-                    code: 202,
-                    msg: String::from("Msg received"),
-                },
-                Err(e) => {
-                    log(format!("Got error: {e}"));
-                    let res = Status::internal(
-                        format!("An error occurred: {e}")
-                    );
-                    log(format!("Returning {res}"));
-                    return Err(res);
-                }
-            }
+        if let Err(e) = logic(&req.msg) {
+            error!("Got error: {e}");
+            let res = Status::internal(format!("An error occurred: {e}"));
+            debug!("Returning err {res}");
+            return Err(res);
         }
 
-        log(format!("Created response {res:?}, closing connection"));
+        info!("Wrote feedback, closing connection");
 
-        Ok(Response::new(res))
+        Ok(Response::new(MsgResponse {}))
     }
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn error::Error>> {
-    log("Checking environment variables");
-    let pwd = env::var("PWD")
-        .expect("PWD is not set");
-    log("Environment variables are set");
+async fn main() -> Result<()> {
+    subscriber::set_global_default(
+        FmtSubscriber::builder()
+            .with_max_level(*LOG_LEVEL)
+            .finish()
+    ).context("Unable to set default subscriber")?;
+    debug!("Successfully set default subscriber");
 
-    log("Starting Server");
+    debug!("Checking environment variables");
+    const PWD_KEY: &str = "PWD";
+    let pwd = env::var(PWD_KEY)
+        .with_context(|| format!("Environment variable {PWD_KEY} is not set"))?;
+    info!("Required environment variable is set");
+
+    info!("Starting Server");
 
     const ADDR: SocketAddr = SocketAddr::new(IpAddr::V6(Ipv6Addr::UNSPECIFIED), PORT);
     let lock = Mutex::new(());
-    let msg_service = CommService {
-        lock,
-        pwd,
-    };
+    let msg_service = CommService { lock, pwd };
 
     Server::builder()
         .add_service(CommunicationServer::new(msg_service))
         .serve(ADDR)
-        .await?;
-
-    Ok(())
+        .await
+        .context("Server broke :(")
 }
 
-fn logic(to_log: &str) -> Result<(), Box<dyn error::Error>> {
-    let current_date_str = Utc::now()
-        .format("%Y-%m-%d")
-        .to_string();
+fn logic(to_log: &str) -> Result<()> {
+    let current_date_str = Utc::now().format("%Y-%m-%d").to_string();
     let file_name = format!("{FILE_PATH}{current_date_str}-{FILE_NAME}");
 
-    log("Opening file");
+    debug!("Opening file {file_name}");
 
     let file = OpenOptions::new()
         .write(true)
         .create(true)
         .append(true)
-        .open(file_name)
-        .map_err(|_| -> Box<dyn error::Error> {
-            const ERR_MSG: &'static str = "Unable to open file \
-            (probably didn't bind the correct path in Docker)";
-            Box::new(io::Error::new(
-                io::ErrorKind::NotFound, ERR_MSG,
-            ))
+        .open(&file_name)
+        .with_context(|| {
+            format!(
+                "Unable to open file {file_name} \
+        (probably didn't bind the correct path in Docker)"
+            )
         })?;
 
     let mut writer = BufWriter::new(file);
@@ -128,11 +145,11 @@ fn logic(to_log: &str) -> Result<(), Box<dyn error::Error>> {
     writeln!(writer, "{current_datetime_str}")?;
 
     for line in to_log.lines() {
-        log(format!("Writing line: {line}"));
+        debug!("Writing line: {line}");
         writeln!(writer, "{line}")?;
     }
 
     writeln!(writer, "{}\n", "-".repeat(50))?;
-    log("Finished writing, closing file");
+    debug!("Finished writing, closing file");
     Ok(())
 }
