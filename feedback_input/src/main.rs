@@ -138,7 +138,7 @@ async fn main() -> Result<()> {
         .mount("/", routes![feedback_landing, print_feedback])
         .launch()
         .await
-        .with_context(|| "The server failed")?;
+        .context("The server failed")?;
 
     Ok(())
 }
