@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Version Info</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Enable dark mode based on system settings or manually */
+        html {
+            color-scheme: light dark;
+        }
+
+        /* Allow the `dark` class to change appearance */
+        :root {
+            --bg-color-light: #f3f4f6; /* Light Gray */
+            --text-color-light: #1f2937; /* Dark Gray */
+            --bg-color-dark: #1a202c; /* Dark Blue Gray */
+            --text-color-dark: #f9fafb; /* Light Gray */
+        }
+
+        body {
+            background-color: var(--bg-color-light);
+            color: var(--text-color-light);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        body.dark {
+            background-color: var(--bg-color-dark);
+            color: var(--text-color-dark);
+        }
+    </style>
+</head>
+<body class="dark:text-gray-300 dark:bg-gray-800 min-h-screen flex flex-col items-center justify-center">
+<h1 class="text-3xl font-bold mb-4">Application Version</h1>
+<p class="text-lg">
+    The current version of this application is:
+    <span id="app-version" class="font-mono text-gray-400 dark:text-gray-200">
+            VERSION
+        </span>
+</p>
+<footer class="mt-8 text-sm text-center text-gray-500 dark:text-gray-400">
+    Made with ❤ using Rust and Rocket
+</footer>
+</body>
+</html>

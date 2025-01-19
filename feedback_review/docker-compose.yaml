@@ -1,0 +1,13 @@
+services:
+  feedback_review:
+    image: hadesmonsta/feedback_review
+    container_name: feedback_review
+    restart: unless-stopped
+    build:
+      context: ./
+    ports:
+      - 8080:8080
+    volumes:
+      - ./feedback:/feedback
+    env_file:
+      - .env

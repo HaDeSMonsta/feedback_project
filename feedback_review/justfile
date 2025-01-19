@@ -1,0 +1,10 @@
+default:
+	@just --list
+clear:
+	clear
+dev: clear
+	docker compose up --build
+release tag="latest": clear
+	docker login
+	docker build -t "hadesmonsta/feedback_review:{{tag}}" ./
+	docker push "hadesmonsta/feedback_review:{{tag}}"

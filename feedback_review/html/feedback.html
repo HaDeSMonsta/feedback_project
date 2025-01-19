@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback for DATE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+		document.addEventListener("DOMContentLoaded", function () {
+			const feedbackList = document.getElementById("feedback-list");
+			const errorMessage = document.getElementById("error-message");
+
+			const hasFeedback = feedbackList.children.length > 0;
+
+			if (!hasFeedback) {
+				feedbackList.classList.add("hidden");
+				errorMessage.classList.remove("hidden");
+			}
+		});
+    </script>
+    <style>
+        /* It looks unused, because we insert feedback_li_template instances at runtime */
+        /* Also what it does: make it respect line breaks in the original feedback */
+        .feedback-container {
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body class="dark:text-gray-300 dark:bg-gray-800 min-h-screen flex flex-col items-center justify-center">
+
+<a href="/" class="absolute top-4 left-4 text-blue-500 dark:text-blue-400 hover:underline flex items-center">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mr-1">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+    </svg>
+    Back to feedback dates
+</a>
+
+<h1 class="text-3xl font-bold mb-6">Feedback for <span id="feedback-date">DATE</span></h1>
+
+<ul id="feedback-list" class="text-lg space-y-4 w-full max-w-4xl">
+    FEEDBACK
+</ul>
+
+<div id="error-message" class="hidden text-center text-lg text-red-500 p-4 border border-red-300 bg-red-50 dark:border-red-500 dark:bg-red-900 rounded-lg mt-6">
+    No feedback available for this day.
+</div>
+
+<a href="/" class="mt-6 inline-block text-blue-500 dark:text-blue-400 hover:underline">Back to feedback dates</a>
+<footer class="mt-8 text-sm text-center text-gray-500 dark:text-gray-400">
+    Made with ❤ using Rust and Rocket
+</footer>
+
+</body>
+</html>
