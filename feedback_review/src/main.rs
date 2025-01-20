@@ -5,7 +5,10 @@ use rocket::{get, routes};
 use std::cell::LazyCell;
 use std::net::Ipv6Addr;
 use std::{env, fs};
-use tracing::{error, subscriber, Level};
+use std::process::exit;
+use std::time::Duration;
+use tokio::time;
+use tracing::{error, subscriber, warn, Level};
 use tracing_subscriber::FmtSubscriber;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -179,6 +182,16 @@ async fn main() -> Result<()> {
 
     subscriber::set_global_default(FmtSubscriber::builder().with_max_level(*LOG_LEVEL).finish())
         .with_context(|| format!("Unable to set subscriber with log level {}", *LOG_LEVEL))?;
+
+    if fs::metadata(FEEDBACK_DIR).is_err() {
+        error!("Feedback dir {FEEDBACK_DIR} does not exist");
+        // Give user time to see it in the logs
+        for i in (1..=10).rev() {
+            warn!("Shutting down in {i} second{}", if i == 1 { "" } else { "s" });
+            time::sleep(Duration::from_secs(1)).await;
+        }
+        exit(1);
+    }
 
     rocket::build()
         .configure(rocket::Config {
