@@ -56,11 +56,7 @@ fn index() -> RawHtml<String> {
         .expect("Unable to get available dates")
         .into_iter()
         .map(|date| {
-            let mut curr = LI_TEMPLATE.to_string();
-            while curr.contains("DATE") {
-                curr = curr.replace("DATE", &date);
-            }
-            curr
+            LI_TEMPLATE.replace("DATE", &date)
         })
         .reduce(|acc, curr| {
             if acc.is_empty() {
@@ -97,11 +93,9 @@ fn feedback(date: String) -> RawHtml<String> {
         })
         .unwrap_or(String::new());
 
-    let mut html = RAW_HTML.replace("FEEDBACK", &feedbacks);
-
-    while html.contains("DATE") {
-        html = html.replace("DATE", &date);
-    }
+    let html = RAW_HTML
+        .replace("FEEDBACK", &feedbacks)
+        .replace("DATE", &date);
 
     RawHtml(html)
 }
