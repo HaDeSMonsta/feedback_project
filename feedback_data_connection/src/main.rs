@@ -19,25 +19,21 @@ const PORT: u16 = 8080;
 
 const LOG_LEVEL: LazyCell<Level> = LazyCell::new(|| {
     const ENV_KEY: &'static str = "LOG_LEVEL";
-    let Ok(log_level) = env::var(ENV_KEY) else {
-        #[cfg(debug_assertions)]
-        return Level::DEBUG;
-        #[cfg(not(debug_assertions))]
-        return Level::INFO;
-    };
-    match log_level.trim().to_lowercase().as_str() {
-        "trace" => Level::TRACE,
-        "debug" => Level::DEBUG,
-        "info" => Level::INFO,
-        "warn" => Level::WARN,
-        "error" => Level::ERROR,
-        _ => {
-            println!("WARNING: {ENV_KEY} is set, but the value is invalid, using default");
-            #[cfg(debug_assertions)]
-            return Level::DEBUG;
-            #[cfg(not(debug_assertions))]
-            return Level::INFO;
+    #[cfg(debug_assertions)]
+    const DEFAULT_LEVEL: Level = Level::DEBUG;
+    #[cfg(not(debug_assertions))]
+    const DEFAULT_LEVEL: Level = Level::INFO;
+
+    match env::var(ENV_KEY) {
+        Ok(lvl) => {
+            lvl.parse()
+               .unwrap_or_else(|_| {
+                   println!("WARNING: {ENV_KEY} is set, but the value is invalid, \
+                       using default ({DEFAULT_LEVEL})");
+                   DEFAULT_LEVEL
+               })
         }
+        Err(_) => DEFAULT_LEVEL,
     }
 });
 
