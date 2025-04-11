@@ -5,11 +5,12 @@
       <sourceFolder url="file://$MODULE_DIR$/feedback_data_connection/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/feedback_input/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/feedback_review/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/feedback_input_yew/src" isTestSource="false" />
-      <excludeFolder url="file://$MODULE_DIR$/feedback_input_yew/dist" />
+      <sourceFolder url="file://$MODULE_DIR$/feedback_frontend/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
       <excludeFolder url="file://$MODULE_DIR$/feedback_data_connection/target" />
+      <excludeFolder url="file://$MODULE_DIR$/feedback_frontend/dist" />
       <excludeFolder url="file://$MODULE_DIR$/feedback_input/target" />
+      <excludeFolder url="file://$MODULE_DIR$/feedback_review/feedback" />
       <excludeFolder url="file://$MODULE_DIR$/feedback_review/target" />
     </content>
     <orderEntry type="inheritedJdk" />

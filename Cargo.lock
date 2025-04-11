@@ -382,6 +382,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "feedback_frontend"
+version = "0.1.0"
+dependencies = [
+ "gloo 0.11.0",
+ "serde",
+ "serde_json",
+ "wasm-bindgen",
+ "web-sys",
+ "yew",
+]
+
+[[package]]
 name = "feedback_input"
 version = "0.2.0"
 dependencies = [
@@ -395,18 +407,6 @@ dependencies = [
  "tonic",
  "tonic-build",
  "urlencoding",
-]
-
-[[package]]
-name = "feedback_input_yew"
-version = "0.1.0"
-dependencies = [
- "gloo 0.11.0",
- "serde",
- "serde_json",
- "wasm-bindgen",
- "web-sys",
- "yew",
 ]
 
 [[package]]

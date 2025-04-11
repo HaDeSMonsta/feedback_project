@@ -1,5 +1,5 @@
 [package]
-name = "feedback_input_yew"
+name = "feedback_frontend"
 version = "0.1.0"
 edition = "2024"
 
