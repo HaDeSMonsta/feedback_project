@@ -1,0 +1,11 @@
+services:
+  feedback_backend:
+    build: .
+    container_name: feedback_backend
+    restart: unless-stopped
+    ports:
+      - "7777:8080"
+    volumes:
+      - ./feedback:/feedback
+    env_file:
+      - .env
