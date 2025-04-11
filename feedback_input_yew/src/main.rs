@@ -5,7 +5,7 @@ use web_sys::HtmlTextAreaElement;
 use yew::platform::spawn_local;
 use yew::prelude::*;
 
-const POST_URI: &str = "http://127.0.0.1:8088/";
+const POST_URI: &str = include_str!("../target_uri.txt");
 const LORIS_LINK: &str = "https://www.youtube.com/channel/UCe40qwYch8JcmBST_BWaYNA";
 
 #[wasm_bindgen]
