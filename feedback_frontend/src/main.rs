@@ -102,11 +102,18 @@ fn input(
         let thanks_colour = thanks_colour.clone();
 
         Callback::from(move |_| {
+            let feedback = feedback.clone();
             let thanks_msg = thanks_msg.clone();
             let thanks_colour = thanks_colour.clone();
+            
+            if feedback.is_empty() {
+                thanks_colour.set(Colour::Red);
+                thanks_msg.set(Some(String::from("Please enter feedback!")));
+                return;
+            }
 
-            let feedback = Feedback { feedback: (*feedback).trim().to_string() };
-            let parsed_feedback = serde_json::to_string(&feedback).unwrap();
+            let feedback_data = Feedback { feedback: (*feedback).trim().to_string() };
+            let parsed_feedback = serde_json::to_string(&feedback_data).unwrap();
 
             spawn_local(async move {
                 let response = Request::post(&POST_URI)
@@ -120,6 +127,7 @@ fn input(
                     Ok(resp) if resp.ok() => {
                         thanks_colour.set(Colour::Green);
                         thanks_msg.set(Some(String::from("Thank you for your feedback!")));
+                        feedback.set(String::new());
                     }
                     Ok(resp) => {
                         thanks_colour.set(Colour::Orange);
@@ -143,6 +151,7 @@ fn input(
                 name="textbox"
                 rows="8"
                 class={classes!("w-full", "p-2", "bg-gray-100", "dark:bg-gray-800", "border", "border-gray-300", "dark:border-gray-700", "rounded", "mb-4", "resize-none")}
+                value={feedback.clone().to_string()}
                 oninput={on_feedback_input}
             ></textarea>
             <button
