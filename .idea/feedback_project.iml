@@ -5,6 +5,8 @@
       <sourceFolder url="file://$MODULE_DIR$/feedback_data_connection/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/feedback_input/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/feedback_review/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/feedback_input_yew/src" isTestSource="false" />
+      <excludeFolder url="file://$MODULE_DIR$/feedback_input_yew/dist" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />
