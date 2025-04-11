@@ -1,8 +1,92 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feedback Tutorium</title>
+    <!--Doesn't work, idk why-->
+    <!--link rel="stylesheet" href="style.css"-->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+		tailwind.config = {
+			darkMode: 'class',
+		};
+
+		function toggleTheme() {
+			const html = document.documentElement;
+			if (html.classList.contains('dark')) {
+				html.classList.remove('dark');
+				localStorage.setItem('theme', 'light');
+			} else {
+				html.classList.add('dark');
+				localStorage.setItem('theme', 'dark');
+			}
+		}
+
+		document.addEventListener('DOMContentLoaded', () => {
+			const theme = localStorage.getItem('theme') || 'dark';
+			if (theme === 'dark') {
+				document.documentElement.classList.add('dark');
+				document.getElementById('theme-switch').checked = true;
+			}
+		});
+    </script>
+    <style>
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 34px;
+            height: 20px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 10px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #2196F3;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(14px);
+        }
+
+        .dark .slider {
+            background-color: #555;
+        }
+
+        .dark input:checked + .slider {
+            background-color: #4CAF50;
+        }
+    </style>
 </head>
-<body></body>
+<body class="relative flex flex-col items-center min-h-screen p-4 bg-white text-black dark:bg-gray-900 dark:text-white transition-colors duration-300">
+</body>
 </html>
+
