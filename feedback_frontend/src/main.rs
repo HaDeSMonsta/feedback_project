@@ -47,7 +47,7 @@ fn App() -> Html {
 
     html! {
         <>
-            <h1 class={classes!("text-3xl", "font-bold", "mb-6", "test-class")}>{ "Feedback" }</h1>
+            <h1 class={classes!("text-3xl", "font-bold", "mb-6")}>{ "Feedback" }</h1>
             { slider() }
             { format_thanks(&thanks_message, &thanks_colour) }
             <p class={classes!("text-lg", "mb-4")}>{ "Please enter the Feedback here:" }</p>
@@ -105,7 +105,7 @@ fn input(
             let feedback = feedback.clone();
             let thanks_msg = thanks_msg.clone();
             let thanks_colour = thanks_colour.clone();
-            
+
             if feedback.is_empty() {
                 thanks_colour.set(Colour::Red);
                 thanks_msg.set(Some(String::from("Please enter feedback!")));
@@ -170,7 +170,7 @@ fn loris_footer() -> Html {
         <p class={classes!("text-sm", "italic", "mt-8")}>
             { "Thank you, " }
             <a href={LORIS_LINK} class={classes!("text-blue-500", "underline")} target="_blank">{ "Loris," }</a>
-            { " for the front end" }
+            { " for the design" }
         </p>
     }
 }

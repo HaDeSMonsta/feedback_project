@@ -1,0 +1,65 @@
+@use "sass:math";
+
+$slider-width: 34px;
+$slider-height: 20px;
+$thumb-size: 14px;
+$unchecked-bg: #ccc;
+$checked-bg: #2196F3;
+$dark-unchecked-bg: #555;
+$dark-checked-bg: #4CAF50;
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: $slider-width;
+  height: $slider-height;
+
+  input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: $unchecked-bg;
+  transition: 0.4s;
+  border-radius: math.div($slider-height, 2);
+
+  &::before {
+    position: absolute;
+    content: "";
+    height: $thumb-size;
+    width: $thumb-size;
+    left: math.div(($slider-height - $thumb-size), 2);
+    bottom: math.div(($slider-height - $thumb-size), 2);
+    background-color: white;
+    transition: 0.4s;
+    border-radius: 50%;
+  }
+}
+
+input:checked + .slider {
+  background-color: $checked-bg;
+
+  &::before {
+    transform: translateX($slider-width - $slider-height);
+  }
+}
+
+.dark {
+
+  input + .slider {
+    background-color: $dark-unchecked-bg;
+  }
+
+  input:checked + .slider {
+    background-color: $dark-checked-bg;
+  }
+}
