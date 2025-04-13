@@ -9,6 +9,7 @@
       <excludeFolder url="file://$MODULE_DIR$/feedback_frontend/dist" />
       <excludeFolder url="file://$MODULE_DIR$/feedback_review/feedback" />
       <excludeFolder url="file://$MODULE_DIR$/feedback_backend/feedback" />
+      <excludeFolder url="file://$MODULE_DIR$/feedback_review/target" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
