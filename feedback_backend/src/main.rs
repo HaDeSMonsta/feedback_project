@@ -1,5 +1,5 @@
 use anyhow::{Context, Result};
-use axum::http::StatusCode;
+use axum::http::{header, HeaderValue, Method, StatusCode};
 use axum::response::IntoResponse;
 use axum::routing::post;
 use axum::{Json, Router};
@@ -12,16 +12,17 @@ use std::io::{BufWriter, Write};
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::sync::Mutex;
 use tokio::net::TcpListener;
+use tower_http::cors::CorsLayer;
 use tracing::{debug, error, info, subscriber, Level};
 use tracing_subscriber::FmtSubscriber;
 
 static WRITE_MUTEX: Mutex<()> = Mutex::new(());
-const FILE_PATH: &'static str = "/feedback/";
-const FILE_NAME: &'static str = "feedback.txt";
+const FILE_PATH: &str = "/feedback/";
+const FILE_NAME: &str = "feedback.txt";
 
 const PORT: u16 = 8080; // This only runs in docker, so 8080 works
 const LOG_LEVEL: LazyCell<Level> = LazyCell::new(|| {
-    const ENV_KEY: &'static str = "LOG_LEVEL";
+    const ENV_KEY: &str = "LOG_LEVEL";
     #[cfg(debug_assertions)]
     const DEFAULT_LEVEL: Level = Level::DEBUG;
     #[cfg(not(debug_assertions))]
@@ -53,8 +54,19 @@ async fn main() -> Result<()> {
             .finish()
     ).with_context(|| format!("Failed to set up logging with level {}", *LOG_LEVEL))?;
 
+    let cors = CorsLayer::new()
+        .allow_origin(
+            env::var("ALLOW_ORIGIN")
+                .context("ALLOW_ORIGIN env var is not set")?
+                .parse::<HeaderValue>()
+                .context("Failed to parse origin")?
+        )
+        .allow_methods([Method::POST, Method::OPTIONS])
+        .allow_headers([header::CONTENT_TYPE]);
+
     let app = Router::new()
-        .route("/feedback", post(handle_feedback));
+        .route("/feedback", post(handle_feedback))
+        .layer(cors);
 
     let listener = TcpListener::bind(
         SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), PORT)
@@ -95,13 +107,13 @@ async fn handle_feedback(Json(feedback): Json<Feedback>) -> impl IntoResponse {
             (you probably didn't bind the correct port in docker)");
         return (StatusCode::INTERNAL_SERVER_ERROR, "Failed to open file");
     };
-    
+
     debug!("Opened file");
-    
+
     let mut writer = BufWriter::new(file);
-    
+
     debug!("Created writer");
-    
+
     if let Err(e) = writeln!(writer, "{}", "-".repeat(LINE_SEP_LEN)) {
         error!("Failed to write initial lines to file {file_name}: {e}");
         return (StatusCode::INTERNAL_SERVER_ERROR, "Failed to write to file");
@@ -118,15 +130,15 @@ async fn handle_feedback(Json(feedback): Json<Feedback>) -> impl IntoResponse {
         error!("Failed to write ending lines to file {file_name}: {e}");
         return (StatusCode::INTERNAL_SERVER_ERROR, "Failed to write to file");
     };
-    
+
     debug!("Finished writing, flushing writer");
 
     if let Err(e) = writer.flush() {
         error!("Failed to flush file {file_name}: {e}");
         return (StatusCode::INTERNAL_SERVER_ERROR, "Failed to flush file");
     };
-    
+
     debug!("Exiting");
-    
+
     (StatusCode::OK, "Feedback Received")
 }
