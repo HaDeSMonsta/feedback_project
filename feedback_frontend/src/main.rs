@@ -131,7 +131,8 @@ fn input(
                     }
                     Ok(resp) => {
                         thanks_colour.set(Colour::Orange);
-                        thanks_msg.set(Some(format!("Request was not successful: {resp:?}")))
+                        thanks_msg.set(Some(format!("Backend was unable to handle request: \
+                            {resp:?}")))
                     }
                     Err(e) => {
                         thanks_colour.set(Colour::Red);
