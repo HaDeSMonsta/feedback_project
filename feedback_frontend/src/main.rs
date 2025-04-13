@@ -36,11 +36,11 @@ impl Colour {
 }
 
 fn main() {
-    yew::Renderer::<App>::new().render();
+    yew::Renderer::<Main>::new().render();
 }
 
-#[function_component]
-fn App() -> Html {
+#[function_component(Main)]
+fn app() -> Html {
     let thanks_message = use_state(|| None);
     let thanks_colour = use_state(|| Colour::Green);
     let feedback = use_state(|| String::new());
@@ -52,7 +52,7 @@ fn App() -> Html {
             { format_thanks(&thanks_message, &thanks_colour) }
             <p class={classes!("text-lg", "mb-4")}>{ "Please enter the Feedback here:" }</p>
             { input(&feedback, &thanks_message, &thanks_colour) }
-            { loris_footer() }
+            <LorisFooter />
         </>
     }
 }
@@ -166,6 +166,7 @@ fn input(
     }
 }
 
+#[function_component(LorisFooter)]
 fn loris_footer() -> Html {
     html! {
         <p class={classes!("text-sm", "italic", "mt-8")}>
