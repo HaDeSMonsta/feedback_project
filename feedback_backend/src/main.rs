@@ -94,7 +94,7 @@ async fn handle_feedback(Json(feedback): Json<Feedback>) -> impl IntoResponse {
 
     let now = Utc::now();
     let current_date = now.format("%Y-%m-%d");
-    let current_date_time = Utc::now().format("[%-Y-%m-%d - %-H:%M:%S]z");
+    let current_date_time = Utc::now().format("[%Y-%m-%d - %H:%M:%S]z");
     let file_name = format!("{FILE_PATH}{current_date}-{FILE_NAME}");
     debug!(file_name);
 
