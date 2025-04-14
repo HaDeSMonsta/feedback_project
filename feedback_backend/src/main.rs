@@ -4,7 +4,7 @@ use axum::response::IntoResponse;
 use axum::routing::post;
 use axum::{Json, Router};
 use chrono::Utc;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use std::cell::LazyCell;
 use std::env;
 use std::fs::OpenOptions;
@@ -41,7 +41,7 @@ const LOG_LEVEL: LazyCell<Level> = LazyCell::new(|| {
     }
 });
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
 struct Feedback {
     feedback: String,
 }

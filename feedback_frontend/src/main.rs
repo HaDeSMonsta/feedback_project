@@ -1,5 +1,5 @@
 use gloo::net::http::Request;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use wasm_bindgen::prelude::*;
 use web_sys::HtmlTextAreaElement;
 use yew::platform::spawn_local;
@@ -14,7 +14,7 @@ extern "C" {
     fn toggleTheme();
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize)]
 struct Feedback {
     feedback: String,
 }
