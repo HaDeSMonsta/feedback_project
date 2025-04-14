@@ -5,6 +5,8 @@
       <sourceFolder url="file://$MODULE_DIR$/feedback_review/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/feedback_frontend/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/feedback_backend/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/feedback_review_backend/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/feedback_review_frontend/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
       <excludeFolder url="file://$MODULE_DIR$/feedback_frontend/dist" />
       <excludeFolder url="file://$MODULE_DIR$/feedback_review/feedback" />
