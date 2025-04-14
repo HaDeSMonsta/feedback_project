@@ -404,6 +404,15 @@ dependencies = [
 [[package]]
 name = "feedback_review_backend"
 version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "axum",
+ "serde",
+ "tokio",
+ "tower-http",
+ "tracing",
+ "tracing-subscriber",
+]
 
 [[package]]
 name = "feedback_review_frontend"
