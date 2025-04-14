@@ -23,11 +23,7 @@
 		}
 
 		document.addEventListener('DOMContentLoaded', () => {
-			const theme = localStorage.getItem('theme') || 'dark';
-			if (theme === 'dark') {
-				document.documentElement.classList.add('dark');
-				document.getElementById('theme-switch').checked = true;
-			}
+			document.documentElement.classList.add('dark');
 		});
     </script>
 </head>
