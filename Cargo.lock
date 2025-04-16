@@ -422,6 +422,7 @@ dependencies = [
  "regex",
  "serde",
  "serde_json",
+ "wasm-bindgen-futures",
  "yew",
  "yew-router",
 ]

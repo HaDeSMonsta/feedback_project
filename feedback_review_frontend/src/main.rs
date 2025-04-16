@@ -1,8 +1,10 @@
+use gloo::net::http::Request;
 use yew::prelude::*;
 use yew_router::prelude::*;
 use serde::{Deserialize, Serialize};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
+const BACKEND_URL: &str = include_str!("../backend_url.txt");
 
 #[derive(Debug, Deserialize)]
 struct FeedbackResponse {
@@ -57,9 +59,47 @@ fn app() -> Html {
 
 #[function_component(Home)]
 fn home() -> Html {
+    let dates = use_state(|| None);
+
+    {
+        let dates = dates.clone();
+        use_effect_with((), move |_| {
+            wasm_bindgen_futures::spawn_local(async move {
+                let result = get_all_dates().await;
+                dates.set(Some(result));
+            });
+            || ()
+        });
+    }
+
     html! {
         <>
-            <p>{ "Home" }</p>
+            <h1 class={classes!("text-3xl", "font-bold", "mb-6")}>{ "Available Feedback Dates" }</h1>
+            {
+                match &*dates {
+                    None => html! { <p>{ "Loading..." }</p> },
+                    Some(Ok(dates)) => html! {
+                        <>
+                            <ul class={classes!("space-y-4", "w-full", "max-w-3xl")}>
+                                {
+                                    for dates
+                                        .iter()
+                                        .map(|date| html! {
+                                            <li>
+                                                <Link<Route> to={Route::Date { date: date.clone() }}>
+                                                    <a class={classes!("block", "w-full", "bg-gray-200", "hover:bg-gray-300", "text-gray-800", "dark:bg-gray-700", "dark:hover:bg-gray-600", "dark:text-gray-300", "font-bold", "py-3", "px-6", "rounded", "shadow", "text-center", "transition")}>
+                                                        { date }
+                                                    </a>
+                                                </Link<Route>>
+                                            </li>
+                                        })
+                                }
+                            </ul>
+                        </>
+                    },
+                    Some(Err(err)) => html! { <p class="error">{ format!("Error: {}", err) }</p> },
+                }
+            }
             <Footer/>
         </>
     }
@@ -73,6 +113,21 @@ fn date(props: &DateProps) -> Html {
             <Footer/>
         </>
     }
+}
+
+async fn get_all_dates() -> Result<Vec<String>, String> {
+    let target_url = format!("{BACKEND_URL}/dates");
+    let res = Request::get(&target_url)
+        .send()
+        .await
+        .map_err(|e| format!("Failed to send request to {target_url}: {e}"))?;
+
+    let dates = res
+        .json::<FeedbackDates>()
+        .await
+        .map_err(|e| format!("Unable to parse response as JSON: {e}"))?;
+
+    dates.dates.ok_or_else(|| "No dates found".to_string())
 }
 
 #[function_component(Version)]
