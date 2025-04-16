@@ -85,21 +85,21 @@ async fn main() -> Result<()> {
     axum::serve(listener, app)
         .await
         .with_context(|| format!("Failed to start server on port {PORT}"))?;
-    
+
     Ok(())
 }
 
 async fn get_available_feedbacks() -> impl IntoResponse {
     debug!("Getting available feedbacks");
-    
+
     let mut dates = vec![];
-    
+
     match fs::read_dir(FILE_ROOT).await {
         Ok(mut dir) => {
             while let Ok(Some(dir)) = dir.next_entry().await {
                 if let Ok(file_name) = dir.file_name().into_string() {
                     dates.push(file_name);
-                } else { 
+                } else {
                     error!("Failed to convert file name to string");
                     return (StatusCode::INTERNAL_SERVER_ERROR, Json(FeedbackDates { dates: None }));
                 }
@@ -110,11 +110,11 @@ async fn get_available_feedbacks() -> impl IntoResponse {
             return (StatusCode::INTERNAL_SERVER_ERROR, Json(FeedbackDates { dates: None }));
         }
     }
-    
+
     let dates = dates.into_iter()
         .map(|date| date.replace(FILE_SUFFIX, ""))
         .collect();
-    
+
     debug!(?dates);
 
     (StatusCode::OK, Json(FeedbackDates { dates: Some(dates) }))
@@ -123,13 +123,13 @@ async fn get_available_feedbacks() -> impl IntoResponse {
 async fn get_feedback_for_date(
     Json(FeedbackRequest { date }): Json<FeedbackRequest>
 ) -> impl IntoResponse {
-    
+
     debug!(date);
     let Some(date) = date else {
         error!("No date provided");
         return (StatusCode::BAD_REQUEST, Json(FeedbackResponse { feedback: None }));
     };
-    
+
     let f_name = format!("{FILE_ROOT}{date}{FILE_SUFFIX}");
     debug!("Checking for file: {f_name}");
     let Ok(feedback) = fs::read_to_string(&f_name)
@@ -137,6 +137,6 @@ async fn get_feedback_for_date(
         error!("No feedback for date {date}");
         return (StatusCode::NOT_FOUND, Json(FeedbackResponse { feedback: None }));
     };
-    
+
     (StatusCode::OK, Json(FeedbackResponse { feedback: Some(feedback) }))
 }
