@@ -1,4 +1,6 @@
+use std::cell::LazyCell;
 use gloo::net::http::Request;
+use regex::Regex;
 use yew::prelude::*;
 use yew_router::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -8,12 +10,7 @@ const BACKEND_URL: &str = include_str!("../backend_url.txt");
 
 #[derive(Debug, Deserialize)]
 struct FeedbackResponse {
-    feedbacks: Option<String>,
-}
-
-#[derive(Debug, Serialize)]
-struct FeedbackRequest {
-    date: Option<String>,
+    feedback: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -107,9 +104,99 @@ fn home() -> Html {
 
 #[function_component(Date)]
 fn date(props: &DateProps) -> Html {
+    let title = format!("Feedback {}", props.date);
+    gloo::utils::document().set_title(&title);
+
+    let date = props.date.clone();
+    let feedback = use_state(|| Err("Loading..".to_string()));
+
+    {
+        let feedback = feedback.clone();
+        let date = date.clone();
+
+        use_effect_with((), move |_| {
+            wasm_bindgen_futures::spawn_local(async move {
+                let dates = match get_all_dates().await {
+                    Ok(dates) => dates,
+                    Err(err) => {
+                        feedback.set(Err(format!("Unable to get all dates: {err}")));
+                        return;
+                    }
+                };
+
+                if !dates.contains(&date) {
+                    feedback.set(Err(format!("Date {date} not found")));
+                    return;
+                }
+
+                let raw_feedbacks = match get_feedback_for_date(&date).await {
+                    Ok(f) => f,
+                    Err(e) => {
+                        feedback.set(Err(format!("Unable to get feedback for date {date}: {e}")));
+                        return;
+                    }
+                };
+
+                match parse_feedback(&raw_feedbacks).await {
+                    Ok(fs) => feedback.set(Ok(fs)),
+                    Err(e) => feedback.set(Err(format!("Unable to parse feedback: {e}"))),
+                }
+            });
+            || ()
+        });
+    }
+
     html! {
         <>
-            <p>{ props.date.clone() }</p>
+            {
+                match &*feedback {
+                    Ok(feedbacks) => html! {
+                        <>
+                            <Link<Route> to={Route::Home}>
+                                <a class={classes!("absolute", "top-4", "left-4", "text-blue-500", "dark:text-blue-400", "hover:underline", "flex", "items-center")}>
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class={classes!("w-6", "h-6", "mr-1")}>
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                                    </svg>
+                                    { "Back to Home" }
+                                </a>
+                            </Link<Route>>
+                            <h1 class={classes!("text-3xl", "font-bold", "mb-6")}>
+                                { format!("Feedback for {date}") }
+                            </h1>
+                            <ul class={classes!("text-lg", "space-y-4", "w-full", "max-w-4xl")}>
+                                {
+                                    for feedbacks
+                                        .iter()
+                                        .map(|feedback| html! {
+                                            <li class={classes!("flex", "items-center", "p4", "border", "border-gray-200", "rounded-lg", "dark:border-gray-600", "dark:bg-gray-700")}>
+                                                <div class={classes!("flex-1", "feedback-container")}>
+                                                    { 
+                                                        feedback[1..]
+                                                            .iter()
+                                                            .map(|line| html! { <p>{ line }</p> })
+                                                            .collect::<Html>() 
+                                                    }
+                                                </div>
+                                                <div class={classes!("text-sm", "text-gray-500", "dark:text-gray-400", "ml-4")}>
+                                                    { feedback[0].clone() }
+                                                </div>
+                                            </li>
+                                        })
+                                }
+                            </ul>
+                        </>
+                },
+                    Err(e) => html! {
+                        <h1 class={classes!("text-3xl", "font-bold", "mb-4")}>
+                            { e }
+                        </h1> },
+                }
+            }
+            <Link<Route> to={Route::Home}>
+                 <a class={classes!("mt-6", "inline-block", "text-blue-500", "dark:text-blue-400", "hover:underline")}>
+                    { "Back to Home" }
+                </a>
+            </Link<Route>>
             <Footer/>
         </>
     }
@@ -128,6 +215,53 @@ async fn get_all_dates() -> Result<Vec<String>, String> {
         .map_err(|e| format!("Unable to parse response as JSON: {e}"))?;
 
     dates.dates.ok_or_else(|| "No dates found".to_string())
+}
+
+async fn get_feedback_for_date(date: &str) -> Result<String, String> {
+    let target_url = format!("{BACKEND_URL}/feedback/{date}");
+
+    let res = Request::get(&target_url)
+        .send()
+        .await
+        .map_err(|e| format!("Failed to send request to {target_url}: {e}"))?;
+
+    let res = res
+        .json::<FeedbackResponse>()
+        .await
+        .map_err(|e| format!("Unable to parse response {res:?} as JSON: {e}"))?;
+
+    res.feedback.ok_or_else(|| format!("No feedback found for date {date}"))
+}
+
+async fn parse_feedback(feedback: &str) -> Result<Vec<Vec<String>>, String> {
+    const DASH_CNT: usize = 50;
+    let feedback_time_regex = Regex::new(r"^\[\d{4}-\d{2}-\d{2} - (\d{2}:\d{2}:\d{2})]z$").unwrap();
+
+    let mut feedbacks = vec![];
+    let mut curr_lines = vec![];
+    let mut active = false;
+
+    for line in feedback.lines() {
+        if line == "-".repeat(DASH_CNT) {
+            active = !active;
+            if !active { // => Just turned inactive
+                feedbacks.push(curr_lines);
+                curr_lines = vec![];
+            } else {
+                continue;
+            }
+        }
+
+        if !active { continue; }
+
+        if let Some(capture) = feedback_time_regex.captures(line) {
+            curr_lines.push(capture[1].to_string());
+        } else {
+            curr_lines.push(line.to_string());
+        }
+    }
+
+    Ok(feedbacks)
 }
 
 #[function_component(Version)]
