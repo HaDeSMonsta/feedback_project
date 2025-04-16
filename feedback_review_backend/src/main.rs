@@ -5,8 +5,9 @@ use anyhow::{Context, Result};
 use axum::http::{header, HeaderValue, Method, StatusCode};
 use axum::response::IntoResponse;
 use axum::{Json, Router};
+use axum::extract::Path;
 use axum::routing::get;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use tokio::fs;
 use tokio::net::TcpListener;
 use tower_http::cors::CorsLayer;
@@ -41,11 +42,6 @@ struct FeedbackDates {
     dates: Option<Vec<String>>,
 }
 
-#[derive(Debug, Deserialize)]
-struct FeedbackRequest {
-    date: Option<String>,
-}
-
 #[derive(Debug, Serialize)]
 struct FeedbackResponse {
     feedback: Option<String>,
@@ -71,7 +67,7 @@ async fn main() -> Result<()> {
 
     let app = Router::new()
         .route("/dates", get(get_available_feedbacks))
-        .route("/date", get(get_feedback_for_date))
+        .route("/feedback/{date}", get(get_feedback_for_date))
         .layer(cors);
 
     let listener = TcpListener::bind(
@@ -112,24 +108,16 @@ async fn get_available_feedbacks() -> impl IntoResponse {
     }
 
     let dates = dates.into_iter()
-        .map(|date| date.replace(FILE_SUFFIX, ""))
-        .collect();
+                     .map(|date| date.replace(FILE_SUFFIX, ""))
+                     .collect();
 
     debug!(?dates);
 
     (StatusCode::OK, Json(FeedbackDates { dates: Some(dates) }))
 }
 
-async fn get_feedback_for_date(
-    Json(FeedbackRequest { date }): Json<FeedbackRequest>
-) -> impl IntoResponse {
-
+async fn get_feedback_for_date(Path(date): Path<String>) -> impl IntoResponse {
     debug!(date);
-    let Some(date) = date else {
-        error!("No date provided");
-        return (StatusCode::BAD_REQUEST, Json(FeedbackResponse { feedback: None }));
-    };
-
     let f_name = format!("{FILE_ROOT}{date}{FILE_SUFFIX}");
     debug!("Checking for file: {f_name}");
     let Ok(feedback) = fs::read_to_string(&f_name)
