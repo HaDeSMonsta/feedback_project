@@ -177,7 +177,7 @@ fn date(props: &DateProps) -> Html {
                                                     }
                                                 </div>
                                                 <div class={classes!("text-sm", "text-gray-500", "dark:text-gray-400", "ml-4")}>
-                                                    { feedback[0].clone() }
+                                                    { &feedback[0] }
                                                 </div>
                                             </li>
                                         })
