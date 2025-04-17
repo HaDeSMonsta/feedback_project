@@ -1,9 +1,8 @@
-use std::cell::LazyCell;
 use gloo::net::http::Request;
 use regex::Regex;
 use yew::prelude::*;
 use yew_router::prelude::*;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 const BACKEND_URL: &str = include_str!("../backend_url.txt");
