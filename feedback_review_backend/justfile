@@ -3,13 +3,11 @@ default:
 run:
 	clear
 	docker compose up --build
-releaset tag="latest":
+release tag:
 	clear
 	docker login
 	docker build -t "hadesmonsta/feedback_review_backend:{{tag}}" ./
 	docker push "hadesmonsta/feedback_review_backend:{{tag}}"
-release tag:
-	clear
-	just releaset "{{tag}}"
-	just releaset
+	docker build -t "hadesmonsta/feedback_review_backend:latest" ./
+	docker push "hadesmonsta/feedback_review_backend:latest"
 
