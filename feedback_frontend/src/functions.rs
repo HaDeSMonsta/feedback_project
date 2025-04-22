@@ -4,20 +4,6 @@ use yew::platform::spawn_local;
 use yew::prelude::*;
 use crate::{Colour, Feedback, POST_URI};
 
-pub fn format_thanks(
-    thanks_message: &UseStateHandle<Option<String>>,
-    thanks_colour: &UseStateHandle<Colour>,
-) -> Html {
-    match &**thanks_message {
-        Some(msg) => html! {
-            <div class={classes!("w-full", "max-w-lg", "text-center", "mb-4")} style={format!("color: {}", thanks_colour.to_string())}>
-                { msg }
-            </div>
-        },
-        None => html! {},
-    }
-}
-
 pub fn input(
     feedback: &UseStateHandle<String>,
     thanks_msg: &UseStateHandle<Option<String>>,

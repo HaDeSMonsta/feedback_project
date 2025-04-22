@@ -1,16 +1,14 @@
 mod components;
 mod functions;
 
-use gloo::net::http::Request;
-use serde::Serialize;
-use wasm_bindgen::prelude::*;
-use web_sys::HtmlTextAreaElement;
-use yew::platform::spawn_local;
-use yew::prelude::*;
 use crate::components::cookie_banner::CookieBanner;
 use crate::components::footer::Footer;
 use crate::components::slider::Slider;
-use crate::functions::{format_thanks, input};
+use crate::components::thanks_msg::ThanksMsg;
+use serde::Serialize;
+use wasm_bindgen::prelude::*;
+use yew::prelude::*;
+use crate::functions::input;
 
 const POST_URI: &str = include_str!("../target_uri.txt");
 const LORIS_LINK: &str = "https://www.youtube.com/channel/UCe40qwYch8JcmBST_BWaYNA";
@@ -26,6 +24,7 @@ struct Feedback {
     feedback: String,
 }
 
+#[derive(PartialEq, Clone)]
 enum Colour {
     Green,
     Red,
@@ -56,7 +55,7 @@ fn app() -> Html {
         <>
             <h1 class={classes!("text-3xl", "font-bold", "mb-6")}>{ "Feedback" }</h1>
             <Slider/>
-            { format_thanks(&thanks_message, &thanks_colour) }
+            <ThanksMsg msg={thanks_message.clone()} colour={thanks_colour.clone()}/>
             <p class={classes!("text-lg", "mb-4")}>{ "Please enter the Feedback here:" }</p>
             { input(&feedback, &thanks_message, &thanks_colour) }
             <Footer/>
