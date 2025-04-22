@@ -1,5 +1,4 @@
 mod components;
-mod functions;
 
 use crate::components::cookie_banner::CookieBanner;
 use crate::components::footer::Footer;
@@ -8,7 +7,7 @@ use crate::components::thanks_msg::ThanksMsg;
 use serde::Serialize;
 use wasm_bindgen::prelude::*;
 use yew::prelude::*;
-use crate::functions::input;
+use crate::components::input::Input;
 
 const POST_URI: &str = include_str!("../target_uri.txt");
 const LORIS_LINK: &str = "https://www.youtube.com/channel/UCe40qwYch8JcmBST_BWaYNA";
@@ -55,9 +54,9 @@ fn app() -> Html {
         <>
             <h1 class={classes!("text-3xl", "font-bold", "mb-6")}>{ "Feedback" }</h1>
             <Slider/>
-            <ThanksMsg msg={thanks_message.clone()} colour={thanks_colour.clone()}/>
+            <ThanksMsg thanks_msg={thanks_message.clone()} thanks_colour={thanks_colour.clone()}/>
             <p class={classes!("text-lg", "mb-4")}>{ "Please enter the Feedback here:" }</p>
-            { input(&feedback, &thanks_message, &thanks_colour) }
+            <Input feedback={feedback.clone()} thanks_msg={thanks_message.clone()} thanks_colour={thanks_colour.clone()}/>
             <Footer/>
             <CookieBanner/>
         </>

@@ -3,15 +3,15 @@ use crate::Colour;
 
 #[derive(PartialEq, Properties)]
 pub struct ThanksMsgProps {
-    pub msg: UseStateHandle<Option<String>>,
-    pub colour: UseStateHandle<Colour>,
+    pub thanks_msg: UseStateHandle<Option<String>>,
+    pub thanks_colour: UseStateHandle<Colour>,
 }
 
 #[function_component(ThanksMsg)]
 pub fn thanks_msg(props: &ThanksMsgProps) -> Html {
-    match &*props.msg {
+    match &*props.thanks_msg {
         Some(msg) => html! {
-            <div class={classes!("w-full", "max-w-lg", "text-center", "mb-4")} style={format!("color: {}", props.colour.to_string())}>
+            <div class={classes!("w-full", "max-w-lg", "text-center", "mb-4")} style={format!("color: {}", props.thanks_colour.to_string())}>
                 { msg }
             </div>
         },

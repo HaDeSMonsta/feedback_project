@@ -4,13 +4,17 @@ use yew::platform::spawn_local;
 use yew::prelude::*;
 use crate::{Colour, Feedback, POST_URI};
 
-pub fn input(
-    feedback: &UseStateHandle<String>,
-    thanks_msg: &UseStateHandle<Option<String>>,
-    thanks_colour: &UseStateHandle<Colour>,
-) -> Html {
+#[derive(PartialEq, Properties)]
+pub struct InputProps {
+    pub feedback: UseStateHandle<String>,
+    pub thanks_msg: UseStateHandle<Option<String>>,
+    pub thanks_colour: UseStateHandle<Colour>,
+}
+
+#[function_component(Input)]
+pub fn input(props: &InputProps) -> Html {
     let on_feedback_input = {
-        let feedback = feedback.clone();
+        let feedback = props.feedback.clone();
         Callback::from(move |e: InputEvent| {
             if let Some(input) = e.target_dyn_into::<HtmlTextAreaElement>() {
                 feedback.set(input.value());
@@ -19,9 +23,9 @@ pub fn input(
     };
 
     let on_click = {
-        let feedback = feedback.clone();
-        let thanks_msg = thanks_msg.clone();
-        let thanks_colour = thanks_colour.clone();
+        let feedback = props.feedback.clone();
+        let thanks_msg = props.thanks_msg.clone();
+        let thanks_colour = props.thanks_colour.clone();
 
         Callback::from(move |_| {
             let feedback = feedback.clone();
@@ -74,7 +78,7 @@ pub fn input(
                 name="textbox"
                 rows="8"
                 class={classes!("w-full", "p-2", "bg-gray-100", "dark:bg-gray-800", "border", "border-gray-300", "dark:border-gray-700", "rounded", "mb-4", "resize-none")}
-                value={feedback.clone().to_string()}
+                value={ props.feedback.clone().to_string() }
                 oninput={on_feedback_input}
             ></textarea>
             <button
