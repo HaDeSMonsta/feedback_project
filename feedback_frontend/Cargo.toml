@@ -3,6 +3,9 @@ name = "feedback_frontend"
 version = "0.1.0"
 edition = "2024"
 
+[features]
+cookie_banner = []
+
 [dependencies]
 yew = { version = "0.21.0", features = ["csr"] }
 wasm-bindgen = "0.2.100"
