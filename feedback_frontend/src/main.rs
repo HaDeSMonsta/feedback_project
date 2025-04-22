@@ -1,5 +1,7 @@
 mod components;
 
+use std::fmt::Display;
+
 use crate::components::cookie_banner::CookieBanner;
 use crate::components::footer::Footer;
 use crate::components::slider::Slider;
@@ -30,12 +32,12 @@ enum Colour {
     Orange,
 }
 
-impl Colour {
-    fn to_string(&self) -> String {
+impl Display for Colour {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Colour::Green => String::from("green"),
-            Colour::Red => String::from("red"),
-            Colour::Orange => String::from("orange"),
+            Colour::Green => write!(f, "green"),
+            Colour::Orange => write!(f, "orange"),
+            Colour::Red => write!(f, "red"),
         }
     }
 }
@@ -48,7 +50,7 @@ fn main() {
 fn app() -> Html {
     let thanks_message = use_state(|| None);
     let thanks_colour = use_state(|| Colour::Green);
-    let feedback = use_state(|| String::new());
+    let feedback = use_state(String::new);
 
     html! {
         <>
