@@ -4,7 +4,7 @@ use axum::response::IntoResponse;
 use axum::routing::post;
 use axum::{Json, Router};
 use chrono::Utc;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use std::cell::LazyCell;
 use std::env;
 use std::fs::OpenOptions;
@@ -41,7 +41,7 @@ const LOG_LEVEL: LazyCell<Level> = LazyCell::new(|| {
     }
 });
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
 struct Feedback {
     feedback: String,
 }
@@ -94,7 +94,7 @@ async fn handle_feedback(Json(feedback): Json<Feedback>) -> impl IntoResponse {
 
     let now = Utc::now();
     let current_date = now.format("%Y-%m-%d");
-    let current_date_time = Utc::now().format("[%-Y-%m-%d - %-H:%M:%S]z");
+    let current_date_time = Utc::now().format("[%Y-%m-%d - %H:%M:%S]z");
     let file_name = format!("{FILE_PATH}{current_date}-{FILE_NAME}");
     debug!(file_name);
 
