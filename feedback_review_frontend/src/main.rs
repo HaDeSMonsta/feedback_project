@@ -169,11 +169,11 @@ fn date(props: &DateProps) -> Html {
                                         .map(|feedback| html! {
                                             <li class={classes!("flex", "items-center", "p4", "border", "border-gray-200", "rounded-lg", "dark:border-gray-600", "dark:bg-gray-700")}>
                                                 <div class={classes!("flex-1", "feedback-container")}>
-                                                    { 
+                                                    {
                                                         feedback[1..]
                                                             .iter()
                                                             .map(|line| html! { <p>{ line }</p> })
-                                                            .collect::<Html>() 
+                                                            .collect::<Html>()
                                                     }
                                                 </div>
                                                 <div class={classes!("text-sm", "text-gray-500", "dark:text-gray-400", "ml-4")}>
