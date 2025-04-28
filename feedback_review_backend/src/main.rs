@@ -1,6 +1,6 @@
-use std::cell::LazyCell;
 use std::env;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+use std::sync::LazyLock;
 use anyhow::{Context, Result};
 use axum::http::{header, HeaderValue, Method, StatusCode};
 use axum::response::IntoResponse;
@@ -17,7 +17,7 @@ use tracing_subscriber::FmtSubscriber;
 const FILE_ROOT: &str = "/feedback/";
 const FILE_SUFFIX: &str = "-feedback.txt";
 const PORT: u16 = 8080; // This only runs in docker, so 8080 works
-const LOG_LEVEL: LazyCell<Level> = LazyCell::new(|| {
+static LOG_LEVEL: LazyLock<Level> = LazyLock::new(|| {
     const ENV_KEY: &str = "LOG_LEVEL";
     #[cfg(debug_assertions)]
     const DEFAULT_LEVEL: Level = Level::DEBUG;

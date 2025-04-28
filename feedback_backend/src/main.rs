@@ -5,12 +5,11 @@ use axum::routing::post;
 use axum::{Json, Router};
 use chrono::Utc;
 use serde::Deserialize;
-use std::cell::LazyCell;
 use std::env;
 use std::fs::OpenOptions;
 use std::io::{BufWriter, Write};
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
-use std::sync::Mutex;
+use std::sync::{LazyLock, Mutex};
 use tokio::net::TcpListener;
 use tower_http::cors::CorsLayer;
 use tracing::{debug, error, info, subscriber, Level};
@@ -21,7 +20,7 @@ const FILE_PATH: &str = "/feedback/";
 const FILE_NAME: &str = "feedback.txt";
 
 const PORT: u16 = 8080; // This only runs in docker, so 8080 works
-const LOG_LEVEL: LazyCell<Level> = LazyCell::new(|| {
+static LOG_LEVEL: LazyLock<Level> = LazyLock::new(|| {
     const ENV_KEY: &str = "LOG_LEVEL";
     #[cfg(debug_assertions)]
     const DEFAULT_LEVEL: Level = Level::DEBUG;
